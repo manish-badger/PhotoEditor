@@ -6,7 +6,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -16,6 +16,7 @@ import android.view.View
 import android.view.animation.AnticipateOvershootInterpolator
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.annotation.RequiresPermission
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
@@ -28,6 +29,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.burhanrashid52.photoediting.EmojiBSFragment.EmojiListener
 import com.burhanrashid52.photoediting.StickerBSFragment.StickerListener
 import com.burhanrashid52.photoediting.base.BaseActivity
@@ -36,24 +43,21 @@ import com.burhanrashid52.photoediting.filters.FilterViewAdapter
 import com.burhanrashid52.photoediting.tools.EditingToolsAdapter
 import com.burhanrashid52.photoediting.tools.EditingToolsAdapter.OnItemSelected
 import com.burhanrashid52.photoediting.tools.ToolType
+import com.burhanrashid52.photoediting.util.getUriForResource
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import ja.burhanrashid52.photoeditor.OnPhotoEditorListener
-import ja.burhanrashid52.photoeditor.PhotoEditor
-import ja.burhanrashid52.photoeditor.PhotoEditorView
-import ja.burhanrashid52.photoeditor.PhotoFilter
-import ja.burhanrashid52.photoeditor.SaveFileResult
-import ja.burhanrashid52.photoeditor.SaveSettings
-import ja.burhanrashid52.photoeditor.TextStyleBuilder
-import ja.burhanrashid52.photoeditor.ViewType
+import ja.burhanrashid52.photoeditor.*
 import ja.burhanrashid52.photoeditor.shape.ShapeBuilder
 import ja.burhanrashid52.photoeditor.shape.ShapeType
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
+import java.util.*
 
 class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickListener,
     PropertiesBSFragment.Properties, ShapeBSFragment.Properties, EmojiListener, StickerListener,
     OnItemSelected, FilterListener {
+
+    private val viewModel: EditImageScreenViewModel by viewModels()
 
     lateinit var mPhotoEditor: PhotoEditor
     private lateinit var mPhotoEditorView: PhotoEditorView
@@ -63,14 +67,13 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     private lateinit var mEmojiBSFragment: EmojiBSFragment
     private lateinit var mStickerBSFragment: StickerBSFragment
     private lateinit var mTxtCurrentTool: TextView
-    private lateinit var mWonderFont: Typeface
+
     private lateinit var mRvTools: RecyclerView
     private lateinit var mRvFilters: RecyclerView
     private val mEditingToolsAdapter = EditingToolsAdapter(this)
     private val mFilterViewAdapter = FilterViewAdapter(this)
     private lateinit var mRootView: ConstraintLayout
     private val mConstraintSet = ConstraintSet()
-    private var mIsFilterVisible = false
 
     @VisibleForTesting
     var mSaveImageUri: Uri? = null
@@ -84,9 +87,9 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
 
         initViews()
 
-        handleIntentImage(mPhotoEditorView.source)
+        //mPhotoEditorView.source.adjustViewBounds = false
 
-        mWonderFont = Typeface.createFromAsset(assets, "beyond_wonderland.ttf")
+        handleIntentImage()
 
         mPropertiesBSFragment = PropertiesBSFragment()
         mEmojiBSFragment = EmojiBSFragment()
@@ -119,13 +122,30 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
 
         mPhotoEditor.setOnPhotoEditorListener(this)
 
-        //Set Image Dynamically
-        mPhotoEditorView.source.setImageResource(R.drawable.paris_tower)
+        // It is possible that the Camera/Gallery Activity ends up rotating
+        // to the orientation different than the orientation of this Activity
+        // and coming back to this Activity then would change the orientation
+        // of this Activity
+        // Lets track if we requested a pick
+        if(!viewModel.pickImageRequested){
+            // Normal flow
+            if(viewModel.currentSourceUri == null){
+                viewModel.currentSourceUri = getUriForResource(applicationContext, R.drawable.paris_tower)
+            }
+            //mPhotoEditorView.source.setImageURI(viewModel.currentSourceUri)
+            Glide.with(this@EditImageActivity)
+                .load(viewModel.currentSourceUri)
+                .fitCenter()
+                //.transform(MyRotationTransformation(getExifOrientation(applicationContext, cameraPickedImageUri)))
+                .skipMemoryCache(true)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .into(mPhotoEditorView.source)
+        }
 
         mSaveFileHelper = FileSaveHelper(this)
     }
 
-    private fun handleIntentImage(source: ImageView) {
+    private fun handleIntentImage() {
         if (intent == null) {
             return
         }
@@ -134,8 +154,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
             Intent.ACTION_EDIT, ACTION_NEXTGEN_EDIT -> {
                 try {
                     val uri = intent.data
-                    val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                    source.setImageBitmap(bitmap)
+                    viewModel.currentSourceUri = uri
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
@@ -145,7 +164,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                 if (intentType != null && intentType.startsWith("image/")) {
                     val imageUri = intent.data
                     if (imageUri != null) {
-                        source.setImageURI(imageUri)
+                        viewModel.currentSourceUri = imageUri
                     }
                 }
             }
@@ -233,12 +252,23 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
             R.id.imgShare -> shareImage()
             R.id.imgCamera -> {
                 val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                startActivityForResult(cameraIntent, CAMERA_REQUEST)
+                viewModel.cameraCapturedImageOutFileTemp = File(cacheDir, "${UUID.randomUUID()}.jpg")
+                val cameraOutUri = FileProvider.getUriForFile(
+                    this,
+                    applicationContext.packageName + ".provider",
+                    viewModel.cameraCapturedImageOutFileTemp!!
+                )
+                cameraIntent.putExtra(
+                    MediaStore.EXTRA_OUTPUT, cameraOutUri
+                )
+                viewModel.pickImageRequested = true
+                startActivityForResult(Intent.createChooser(cameraIntent, "Select Camera App"), CAMERA_REQUEST)
             }
             R.id.imgGallery -> {
                 val intent = Intent()
                 intent.type = "image/*"
                 intent.action = Intent.ACTION_GET_CONTENT
+                viewModel.pickImageRequested = true
                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_REQUEST)
             }
         }
@@ -265,7 +295,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
 
         return FileProvider.getUriForFile(
             this,
-            FILE_PROVIDER_AUTHORITY,
+            applicationContext.packageName,
             File(path)
         )
     }
@@ -305,6 +335,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                                 mPhotoEditorView.source.setImageURI(mSaveImageUri)
                             } else {
                                 hideLoading()
+                                Log.d("EditImageActivity", "Failed to save Image", (result as SaveFileResult.Failure).exception)
                                 showSnackbar("Failed to save Image")
                             }
                         } else {
@@ -326,17 +357,97 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
         if (resultCode == RESULT_OK) {
             when (requestCode) {
                 CAMERA_REQUEST -> {
+                    viewModel.pickImageRequested = false
                     mPhotoEditor.clearAllViews()
-                    val photo = data?.extras?.get("data") as Bitmap?
-                    mPhotoEditorView.source.setImageBitmap(photo)
+                    lifecycleScope.launch(){
+                        // Now that we are going to apply this picked image from camera,
+                        // schedule delete of any last picked image from Camera
+                        viewModel.deleteCurrentPickedImageFromCamera()
+                        // temp's purpose ends here
+                        viewModel.cameraCapturedImageOutFile = viewModel.cameraCapturedImageOutFileTemp
+                        viewModel.cameraCapturedImageOutFileTemp = null
+
+                        viewModel.pickedImageUri = FileProvider.getUriForFile(
+                            applicationContext,
+                            applicationContext.packageName + ".provider",
+                            viewModel.cameraCapturedImageOutFile!!
+                        )
+                        viewModel.currentSourceUri = viewModel.pickedImageUri
+                        Glide.with(this@EditImageActivity)
+                            .load(viewModel.currentSourceUri)
+                            .fitCenter()
+                            //.transform(MyRotationTransformation(getExifOrientation(applicationContext, cameraPickedImageUri)))
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .listener(object : RequestListener<Drawable> {
+                                override fun onLoadFailed(
+                                    e: GlideException?,
+                                    model: Any?,
+                                    target: Target<Drawable>?,
+                                    isFirstResource: Boolean
+                                ): Boolean {
+                                    return false
+                                }
+
+                                override fun onResourceReady(
+                                    resource: Drawable?,
+                                    model: Any?,
+                                    target: Target<Drawable>?,
+                                    dataSource: DataSource?,
+                                    isFirstResource: Boolean
+                                ): Boolean {
+                                    lifecycleScope.launch(){
+                                        //viewModel.clearPickedImage()
+                                    }
+                                    return false
+                                }
+                            })
+                            .into(mPhotoEditorView.source)
+                    }
                 }
                 PICK_REQUEST -> try {
+                    viewModel.pickImageRequested = false
                     mPhotoEditor.clearAllViews()
-                    val uri = data?.data
-                    val bitmap = MediaStore.Images.Media.getBitmap(
-                        contentResolver, uri
-                    )
-                    mPhotoEditorView.source.setImageBitmap(bitmap)
+                    lifecycleScope.launch(){
+                        viewModel.pickedImageUri = data?.data
+                        if(viewModel.pickedImageUri != null){
+                            viewModel.currentSourceUri = viewModel.pickedImageUri
+                            mPhotoEditorView.source.setImageURI(viewModel.currentSourceUri)
+                            //mPhotoEditorView.source.setImageDrawable(viewModel.currentSourceDrawable)
+
+                            /*GlideApp.with(this@EditImageActivity)
+                                .load(viewModel.currentSourceUri)
+                                .optionalCenterInside()
+                                //.transform(MyRotationTransformation(getExifOrientation(applicationContext, cameraPickedImageUri)))
+                                .skipMemoryCache(true)
+                                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                .listener(object : RequestListener<Drawable> {
+                                    override fun onLoadFailed(
+                                        e: GlideException?,
+                                        model: Any?,
+                                        target: Target<Drawable>?,
+                                        isFirstResource: Boolean
+                                    ): Boolean {
+                                        return false
+                                    }
+
+                                    override fun onResourceReady(
+                                        resource: Drawable?,
+                                        model: Any?,
+                                        target: Target<Drawable>?,
+                                        dataSource: DataSource?,
+                                        isFirstResource: Boolean
+                                    ): Boolean {
+                                        lifecycleScope.launch(){
+                                            viewModel.clearPickedImage()
+                                        }
+                                        return false
+                                    }
+                                })
+                                .into(mPhotoEditorView.source)*/
+                        }
+                    }
+
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
@@ -436,7 +547,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     }
 
     private fun showFilter(isVisible: Boolean) {
-        mIsFilterVisible = isVisible
+        viewModel.mIsFilterVisible = isVisible
         mConstraintSet.clone(mRootView)
 
         val rvFilterId: Int = mRvFilters.id
@@ -468,7 +579,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     }
 
     override fun onBackPressed() {
-        if (mIsFilterVisible) {
+        if (viewModel.mIsFilterVisible) {
             showFilter(false)
             mTxtCurrentTool.setText(R.string.app_name)
         } else if (!mPhotoEditor.isCacheEmpty) {
@@ -482,7 +593,6 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
 
         private const val TAG = "EditImageActivity"
 
-        const val FILE_PROVIDER_AUTHORITY = "com.burhanrashid52.photoediting.fileprovider"
         private const val CAMERA_REQUEST = 52
         private const val PICK_REQUEST = 53
         const val ACTION_NEXTGEN_EDIT = "action_nextgen_edit"
