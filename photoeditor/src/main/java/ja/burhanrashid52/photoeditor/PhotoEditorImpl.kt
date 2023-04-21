@@ -35,7 +35,7 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
 ) : PhotoEditor {
     private val photoEditorView: PhotoEditorView = builder.photoEditorView
     private val viewState: PhotoEditorViewState = PhotoEditorViewState()
-    private val imageView: ImageView? = builder.imageView
+    private val imageView: ImageView = builder.imageView
     private val deleteView: View? = builder.deleteView
     private val drawingView: DrawingView? = builder.drawingView
     private val mBrushDrawingStateListener: BrushDrawingStateListener =
@@ -145,7 +145,9 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
             imageView,
             isPinchScalable,
             mOnPhotoEditorListener,
-            viewState
+            viewState,
+            true,
+            null
         )
     }
 

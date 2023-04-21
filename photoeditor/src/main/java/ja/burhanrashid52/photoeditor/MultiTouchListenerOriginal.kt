@@ -17,98 +17,40 @@ import kotlin.math.min
  *
  *
  */
-internal class MultiTouchListener(
+internal class MultiTouchListenerOriginal(
     deleteView: View?,
     photoEditorView: PhotoEditorView,
-    photoEditImageView: ImageView,
+    photoEditImageView: ImageView?,
     private val mIsPinchScalable: Boolean,
     onPhotoEditorListener: OnPhotoEditorListener?,
-    viewState: PhotoEditorViewState,
-    defaultTouchBehavior: Boolean,
-    touchListeners: List<BasePhotoEditorTouchListener>? = null
+    viewState: PhotoEditorViewState
 ) : OnTouchListener {
-
+    private val mGestureListener: GestureDetector
+    private val isRotateEnabled = true
+    private val isTranslateEnabled = true
+    private val isScaleEnabled = true
+    private val minimumScale = 0.5f
+    private val maximumScale = 10.0f
     private var mActivePointerId = INVALID_POINTER_ID
     private var mPrevX = 0f
     private var mPrevY = 0f
     private var mPrevRawX = 0f
     private var mPrevRawY = 0f
-
-    private var onMultiTouchListener: OnMultiTouchListener? = null
-    private var mOnGestureControl: OnGestureControl? = null
-    private val mGestureListener: GestureDetector
-
-    //private val mScaleGestureDetector: ScaleGestureDetector
+    private val mScaleGestureDetector: ScaleGestureDetector
     private val location = IntArray(2)
     private var outRect: Rect? = null
-
     private val deleteView: View?
     private val photoEditImageView: ImageView?
     private val photoEditorView: PhotoEditorView
+    private var onMultiTouchListener: OnMultiTouchListener? = null
+    private var mOnGestureControl: OnGestureControl? = null
     private val mOnPhotoEditorListener: OnPhotoEditorListener?
     private val viewState: PhotoEditorViewState
-
-    private val defaultTouchBehavior: Boolean
-
-    private val touchListeners = arrayListOf<BasePhotoEditorTouchListener>()
-
-    init {
-        this.defaultTouchBehavior = defaultTouchBehavior
-        if (this.defaultTouchBehavior) {
-            this.touchListeners.add(
-                DefaultScaleTouchListener(
-                    photoEditorView,
-                    photoEditImageView,
-                    onPhotoEditorListener,
-                    viewState,
-                    mIsPinchScalable
-                )
-            )
-            this.touchListeners.add(
-                DefaultTranslateTouchListener(
-                    photoEditorView,
-                    photoEditImageView,
-                    onPhotoEditorListener,
-                    viewState,
-                    mIsPinchScalable
-                )
-            )
-        }
-        else if(!touchListeners.isNullOrEmpty()){
-            this.touchListeners.apply {
-                addAll(touchListeners)
-                forEach {
-                    it.viewState = viewState
-                    it.photoEditImageView = photoEditImageView
-                    it.photoEditorView = photoEditorView
-                    it.mOnPhotoEditorListener = onPhotoEditorListener
-                }
-            }
-        }
-        else{
-            // The View will stay fixed at one place. No motion possible
-        }
-        mGestureListener = GestureDetector(GestureListener())
-        this.deleteView = deleteView
-        this.photoEditorView = photoEditorView
-        this.photoEditImageView = photoEditImageView
-        mOnPhotoEditorListener = onPhotoEditorListener
-        outRect = if (deleteView != null) {
-            Rect(
-                deleteView.left, deleteView.top,
-                deleteView.right, deleteView.bottom
-            )
-        } else {
-            Rect(0, 0, 0, 0)
-        }
-        this.viewState = viewState
-    }
-
-
     override fun onTouch(view: View, event: MotionEvent): Boolean {
+        mScaleGestureDetector.onTouchEvent(view, event)
         mGestureListener.onTouchEvent(event)
-        this.touchListeners.forEach {
-            it.onTouch(view, event)
+        if (!isTranslateEnabled) {
+            return true
         }
         val action = event.action
         val x = event.rawX.toInt()
@@ -126,9 +68,18 @@ internal class MultiTouchListener(
                 view.bringToFront()
                 firePhotoEditorSDKListener(view, true)
             }
-            MotionEvent.ACTION_MOVE ->{
-
-            }
+            MotionEvent.ACTION_MOVE ->
+                // Only enable dragging on focused stickers.
+                if (view === viewState.currentSelectedView) {
+                    val pointerIndexMove = event.findPointerIndex(mActivePointerId)
+                    if (pointerIndexMove != -1) {
+                        val currX = event.getX(pointerIndexMove)
+                        val currY = event.getY(pointerIndexMove)
+                        if (!mScaleGestureDetector.isInProgress) {
+                            adjustTranslation(view, currX - mPrevX, currY - mPrevY)
+                        }
+                    }
+                }
             MotionEvent.ACTION_CANCEL -> mActivePointerId = INVALID_POINTER_ID
             MotionEvent.ACTION_UP -> {
                 mActivePointerId = INVALID_POINTER_ID
@@ -179,6 +130,47 @@ internal class MultiTouchListener(
         this.onMultiTouchListener = onMultiTouchListener
     }
 
+    private inner class ScaleGestureListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        private var mPivotX = 0f
+        private var mPivotY = 0f
+        private val mPrevSpanVector = Vector2D()
+
+        override fun onScaleBegin(view: View, detector: ScaleGestureDetector): Boolean {
+            mPivotX = detector.getFocusX()
+            mPivotY = detector.getFocusY()
+            mPrevSpanVector.set(detector.getCurrentSpanVector())
+            return mIsPinchScalable
+        }
+
+        override fun onScale(view: View, detector: ScaleGestureDetector): Boolean {
+            val info = TransformInfo()
+            info.deltaScale = if (isScaleEnabled) detector.getScaleFactor() else 1.0f
+            info.deltaAngle = if (isRotateEnabled) Vector2D.getAngle(
+                mPrevSpanVector,
+                detector.getCurrentSpanVector()
+            ) else 0.0f
+            info.deltaX = if (isTranslateEnabled) detector.getFocusX() - mPivotX else 0.0f
+            info.deltaY = if (isTranslateEnabled) detector.getFocusY() - mPivotY else 0.0f
+            info.pivotX = mPivotX
+            info.pivotY = mPivotY
+            info.minimumScale = minimumScale
+            info.maximumScale = maximumScale
+            move(view, info)
+            return !mIsPinchScalable
+        }
+    }
+
+    private inner class TransformInfo {
+        var deltaX = 0f
+        var deltaY = 0f
+        var deltaScale = 0f
+        var deltaAngle = 0f
+        var pivotX = 0f
+        var pivotY = 0f
+        var minimumScale = 0f
+        var maximumScale = 0f
+    }
+
     internal interface OnMultiTouchListener {
         fun onEditTextClickListener(text: String?, colorCode: Int)
         fun onRemoveViewListener(removedView: View?)
@@ -207,8 +199,8 @@ internal class MultiTouchListener(
     }
 
     companion object {
-        internal const val INVALID_POINTER_ID = -1
-        internal fun adjustAngle(degrees: Float): Float {
+        private const val INVALID_POINTER_ID = -1
+        private fun adjustAngle(degrees: Float): Float {
             return when {
                 degrees > 180.0f -> {
                     degrees - 360.0f
@@ -220,7 +212,7 @@ internal class MultiTouchListener(
             }
         }
 
-        internal fun move(view: View, info: TransformInfo) {
+        private fun move(view: View, info: TransformInfo) {
             computeRenderOffset(view, info.pivotX, info.pivotY)
             adjustTranslation(view, info.deltaX, info.deltaY)
             var scale = view.scaleX * info.deltaScale
@@ -231,14 +223,14 @@ internal class MultiTouchListener(
             view.rotation = rotation
         }
 
-        internal fun adjustTranslation(view: View, deltaX: Float, deltaY: Float) {
+        private fun adjustTranslation(view: View, deltaX: Float, deltaY: Float) {
             val deltaVector = floatArrayOf(deltaX, deltaY)
             view.matrix.mapVectors(deltaVector)
             view.translationX = view.translationX + deltaVector[0]
             view.translationY = view.translationY + deltaVector[1]
         }
 
-        internal fun computeRenderOffset(view: View, pivotX: Float, pivotY: Float) {
+        private fun computeRenderOffset(view: View, pivotX: Float, pivotY: Float) {
             if (view.pivotX == pivotX && view.pivotY == pivotY) {
                 return
             }
@@ -253,5 +245,23 @@ internal class MultiTouchListener(
             view.translationX = view.translationX - offsetX
             view.translationY = view.translationY - offsetY
         }
+    }
+
+    init {
+        mScaleGestureDetector = ScaleGestureDetector(ScaleGestureListener())
+        mGestureListener = GestureDetector(GestureListener())
+        this.deleteView = deleteView
+        this.photoEditorView = photoEditorView
+        this.photoEditImageView = photoEditImageView
+        mOnPhotoEditorListener = onPhotoEditorListener
+        outRect = if (deleteView != null) {
+            Rect(
+                deleteView.left, deleteView.top,
+                deleteView.right, deleteView.bottom
+            )
+        } else {
+            Rect(0, 0, 0, 0)
+        }
+        this.viewState = viewState
     }
 }

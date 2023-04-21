@@ -265,7 +265,7 @@ interface PhotoEditor {
      */
     class Builder(var context: Context, var photoEditorView: PhotoEditorView) {
         @JvmField
-        var imageView: ImageView? = null
+        var imageView: ImageView
 
         @JvmField
         var deleteView: View? = null
@@ -285,6 +285,19 @@ interface PhotoEditor {
 
         @JvmField
         var clipSourceImage = false
+
+        /**
+         * Building a PhotoEditor which requires a Context and PhotoEditorView
+         * which we have setup in our xml layout
+         *
+         * @param context         context
+         * @param photoEditorView [PhotoEditorView]
+         */
+        init {
+            imageView = photoEditorView.source
+            drawingView = photoEditorView.drawingView
+        }
+
         fun setDeleteView(deleteView: View?): Builder {
             this.deleteView = deleteView
             return this
@@ -339,18 +352,6 @@ interface PhotoEditor {
         fun setClipSourceImage(clip: Boolean): Builder {
             clipSourceImage = clip
             return this
-        }
-
-        /**
-         * Building a PhotoEditor which requires a Context and PhotoEditorView
-         * which we have setup in our xml layout
-         *
-         * @param context         context
-         * @param photoEditorView [PhotoEditorView]
-         */
-        init {
-            imageView = photoEditorView?.source
-            drawingView = photoEditorView?.drawingView
         }
     }
 
