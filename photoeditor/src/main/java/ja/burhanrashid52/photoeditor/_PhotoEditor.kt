@@ -1,7 +1,7 @@
 package ja.burhanrashid52.photoeditor
 
 import android.Manifest
-import android.graphics.Typeface
+import android.graphics.Bitmap
 import android.view.View
 import androidx.annotation.RequiresPermission
 import kotlinx.coroutines.Dispatchers
@@ -36,4 +36,37 @@ fun PhotoEditor.saveAsBitmap(saveSettings: SaveSettings, onSaveBitmap: OnSaveBit
 
 fun PhotoEditor.saveAsBitmap(onSaveBitmap: OnSaveBitmap) {
     saveAsBitmap(SaveSettings.Builder().build(), onSaveBitmap)
+}
+
+fun PhotoEditor.boundedBoxSticker(): StickerGraphicalElement{
+    val sticker = addImage(
+        StickerBuilder().layoutId(R.layout.bounded_box_iv_based_sticker)
+    )
+    val closeView = sticker.rootView.findViewById<View>(R.id.close)
+    closeView.setOnClickListener {
+        removeGraphicalElement(sticker.tag)
+    }
+    return sticker
+}
+
+fun PhotoEditor.boundedBoxText(): TextGraphicalElement{
+    val text = addText(
+        TextGraphicalElementBuilder().layoutId(R.layout.bounded_box_tv_based_graphical_element)
+    )
+    val closeView = text.rootView.findViewById<View>(R.id.close)
+    closeView.setOnClickListener {
+        removeGraphicalElement(text.tag)
+    }
+    return text
+}
+
+fun PhotoEditor.boundedBoxEmoji(): EmojiGraphicalElement{
+    val text = addEmoji(
+        EmojiGraphicalElementBuilder().layoutId(R.layout.bounded_box_tv_based_graphical_element)
+    )
+    val closeView = text.rootView.findViewById<View>(R.id.close)
+    closeView.setOnClickListener {
+        removeGraphicalElement(text.tag)
+    }
+    return text
 }

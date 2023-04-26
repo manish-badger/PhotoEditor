@@ -75,7 +75,6 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
         val sticker = stickerBuilder.build(
             photoEditorView, viewState, mOnPhotoEditorListener, deleteView, imageView
         )
-        sticker.contentView
         addToEditor(sticker)
         graphicalElements[sticker.tag] = sticker
         return sticker

@@ -482,7 +482,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     }
 
     override fun onStickerClick(bitmap: Bitmap?) {
-        val sticker = mPhotoEditor.addImage(StickerBuilder())
+        val sticker = mPhotoEditor.boundedBoxSticker()
         sticker.contentView.setImageBitmap(bitmap)
         mTxtCurrentTool.setText(R.string.label_sticker)
     }
