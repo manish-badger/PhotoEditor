@@ -5,12 +5,11 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.widget.TextView
-import java.util.*
 
 /**
  *
  *
- * This class is used to wrap the styles to apply on the TextView on [PhotoEditor.addText] and [PhotoEditor.editText]
+ * This class is used to wrap the styles to apply on the TextView on [PhotoEditorOriginal.addText] and [PhotoEditorOriginal.editText]
  *
  *
  * @author [Christian Caballero](https://github.com/Sulfkain)
@@ -251,7 +250,7 @@ open class TextStyleBuilder {
     }
 
     /**
-     * Enum to maintain current supported style properties used on on [PhotoEditor.addText] and [PhotoEditor.editText]
+     * Enum to maintain current supported style properties used on on [PhotoEditorOriginal.addText] and [PhotoEditorOriginal.editText]
      */
     enum class TextStyle(val property: String) {
         SIZE("TextSize"),

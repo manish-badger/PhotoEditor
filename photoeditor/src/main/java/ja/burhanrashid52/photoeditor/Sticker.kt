@@ -10,10 +10,10 @@ import android.widget.ImageView
  * @author <https:></https:>//github.com/burhanrashid52>
  */
 internal class Sticker(
-    private val mPhotoEditorView: PhotoEditorView,
-    private val mMultiTouchListener: MultiTouchListener,
-    private val mViewState: PhotoEditorViewState,
-    graphicManager: GraphicManager?
+    private val mPhotoEditorView: PhotoEditorViewOriginal,
+    private val mMultiTouchListener: MultiTouchListenerOriginal,
+    private val mViewState: PhotoEditorViewStateOriginal,
+    graphicManager: GraphicManagerOriginal?
 ) : Graphic(
     context = mPhotoEditorView.context,
     graphicManager = graphicManager,

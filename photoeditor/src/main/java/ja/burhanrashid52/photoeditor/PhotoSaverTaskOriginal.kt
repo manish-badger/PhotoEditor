@@ -15,26 +15,24 @@ import java.io.IOException
  *
  * @author <https:></https:>//github.com/burhanrashid52>
  */
-internal class PhotoSaverTask(
-    private val photoEditor: PhotoEditor,
-    private val photoEditorView: PhotoEditorView,
-    private val drawingGraphicalElement: DrawingGraphicalElement,
-    private val boxHelper: BoxHelper,
+internal class PhotoSaverTaskOriginal(
+    private val photoEditorView: PhotoEditorViewOriginal,
+    private val boxHelper: BoxHelperOriginal,
     private var saveSettings: SaveSettings
 ) {
 
-    private val drawingView: DrawingView? = drawingGraphicalElement.contentView
+    private val drawingView: DrawingViewOriginal = photoEditorView.drawingView
 
     private fun onBeforeSaveImage() {
         boxHelper.clearHelperBox()
-        drawingView?.destroyDrawingCache()
+        drawingView.destroyDrawingCache()
     }
 
     fun saveImageAsBitmap(): Bitmap {
         onBeforeSaveImage()
         val bitmap = buildBitmap()
         if (saveSettings.isClearViewsEnabled) {
-            photoEditor.clearAllViews()
+            boxHelper.clearAllViews(drawingView)
         }
         return bitmap
     }
@@ -64,7 +62,7 @@ internal class PhotoSaverTask(
         if (result is SaveFileResult.Success) {
             // Clear all views if it's enabled in save settings
             if (saveSettings.isClearViewsEnabled) {
-                photoEditor.clearAllViews()
+                boxHelper.clearAllViews(drawingView)
             }
         }
 

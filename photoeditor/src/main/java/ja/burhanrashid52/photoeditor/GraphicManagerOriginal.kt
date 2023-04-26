@@ -9,19 +9,19 @@ import android.widget.RelativeLayout
  *
  * @author <https:></https:>//github.com/burhanrashid52>
  */
-internal class GraphicManager(
-    private val mPhotoEditorView: PhotoEditorView,
-    private val mViewState: PhotoEditorViewState
+internal class GraphicManagerOriginal(
+    private val mPhotoEditorView: PhotoEditorViewOriginal,
+    private val mViewState: PhotoEditorViewStateOriginal
 ) {
     var onPhotoEditorListener: OnPhotoEditorListener? = null
-    fun addView(graphic: GraphicalBase) {
+    fun addView(graphic: Graphic) {
         val view = graphic.rootView
         val params = RelativeLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
         )
         params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE)
         mPhotoEditorView.addView(view, params)
-        mViewState.addAddedView(graphic)
+        mViewState.addAddedView(view)
 
         onPhotoEditorListener?.onAddViewListener(
             graphic.viewType,
@@ -29,12 +29,12 @@ internal class GraphicManager(
         )
     }
 
-    fun removeView(graphic: GraphicalBase) {
+    fun removeView(graphic: Graphic) {
         val view = graphic.rootView
-        if (mViewState.containsAddedView(graphic)) {
+        if (mViewState.containsAddedView(view)) {
             mPhotoEditorView.removeView(view)
-            mViewState.removeAddedView(graphic)
-            mViewState.pushRedoView(graphic)
+            mViewState.removeAddedView(view)
+            mViewState.pushRedoView(view)
             onPhotoEditorListener?.onRemoveViewListener(
                 graphic.viewType,
                 mViewState.addedViewsCount
@@ -42,24 +42,22 @@ internal class GraphicManager(
         }
     }
 
-    fun updateView(graphic: GraphicalBase) {
-        val view = graphic.rootView
+    fun updateView(view: View) {
         mPhotoEditorView.updateViewLayout(view, view.layoutParams)
-        mViewState.replaceAddedView(graphic)
+        mViewState.replaceAddedView(view)
     }
 
     fun undoView(): Boolean {
         if (mViewState.addedViewsCount > 0) {
-            val graphic = mViewState.getAddedView(
+            val removeView = mViewState.getAddedView(
                 mViewState.addedViewsCount - 1
             )
-            val removeView = graphic.rootView
             if (removeView is DrawingView) {
                 return removeView.undo()
             } else {
                 mViewState.removeAddedView(mViewState.addedViewsCount - 1)
                 mPhotoEditorView.removeView(removeView)
-                mViewState.pushRedoView(graphic)
+                mViewState.pushRedoView(removeView)
             }
             when (val viewTag = removeView.tag) {
                 is ViewType -> onPhotoEditorListener?.onRemoveViewListener(
@@ -73,16 +71,15 @@ internal class GraphicManager(
 
     fun redoView(): Boolean {
         if (mViewState.redoViewsCount > 0) {
-            val graphic = mViewState.getRedoView(
+            val redoView = mViewState.getRedoView(
                 mViewState.redoViewsCount - 1
             )
-            val redoView = graphic.rootView
             if (redoView is DrawingView) {
                 return redoView.redo()
             } else {
                 mViewState.popRedoView()
                 mPhotoEditorView.addView(redoView)
-                mViewState.addAddedView(graphic)
+                mViewState.addAddedView(redoView)
             }
             when (val viewTag = redoView.tag) {
                 is ViewType -> onPhotoEditorListener?.onAddViewListener(

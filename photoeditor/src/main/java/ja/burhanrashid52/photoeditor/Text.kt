@@ -11,11 +11,11 @@ import android.widget.TextView
  * @author <https:></https:>//github.com/burhanrashid52>
  */
 internal class Text(
-    private val mPhotoEditorView: PhotoEditorView,
-    private val mMultiTouchListener: MultiTouchListener,
-    private val mViewState: PhotoEditorViewState,
+    private val mPhotoEditorView: PhotoEditorViewOriginal,
+    private val mMultiTouchListener: MultiTouchListenerOriginal,
+    private val mViewState: PhotoEditorViewStateOriginal,
     private val mDefaultTextTypeface: Typeface?,
-    private val mGraphicManager: GraphicManager
+    private val mGraphicManager: GraphicManagerOriginal
 ) : Graphic(
     context = mPhotoEditorView.context,
     graphicManager = mGraphicManager,

@@ -24,7 +24,7 @@ import java.util.*
  * @version 0.1.1
  * @since 12/1/18
  */
-class DrawingView @JvmOverloads constructor(
+class DrawingViewOriginal @JvmOverloads constructor(
     context: Context?,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
@@ -34,14 +34,12 @@ class DrawingView @JvmOverloads constructor(
     internal var currentShape: ShapeAndPaint? = null
     var isDrawingEnabled = false
         private set
-    private var viewChangeListener: BrushViewChangeListener? = null
+    private var viewChangeListener: BrushViewChangeListenerOriginal? = null
     var currentShapeBuilder: ShapeBuilder
 
     // eraser parameters
     private var isErasing = false
     var eraserSize = DEFAULT_ERASER_SIZE
-
-    internal lateinit var drawingGraphicalElement: DrawingGraphicalElement
 
     // endregion
     private fun createPaint(): Paint {
@@ -77,7 +75,7 @@ class DrawingView @JvmOverloads constructor(
         invalidate()
     }
 
-    fun setBrushViewChangeListener(brushViewChangeListener: BrushViewChangeListener?) {
+    fun setBrushViewChangeListener(brushViewChangeListener: BrushViewChangeListenerOriginal?) {
         viewChangeListener = brushViewChangeListener
     }
 
@@ -165,7 +163,7 @@ class DrawingView @JvmOverloads constructor(
         }
         viewChangeListener?.apply {
             onStopDrawing()
-            onViewAdd(drawingGraphicalElement)
+            onViewAdd(this@DrawingViewOriginal)
         }
     }
 
@@ -174,7 +172,7 @@ class DrawingView @JvmOverloads constructor(
             redoShapes.push(drawShapes.pop())
             invalidate()
         }
-        viewChangeListener?.onViewRemoved(drawingGraphicalElement)
+        viewChangeListener?.onViewRemoved(this)
         return !drawShapes.empty()
     }
 
@@ -183,7 +181,7 @@ class DrawingView @JvmOverloads constructor(
             drawShapes.push(redoShapes.pop())
             invalidate()
         }
-        viewChangeListener?.onViewAdd(drawingGraphicalElement)
+        viewChangeListener?.onViewAdd(this)
         return !redoShapes.empty()
     }
 

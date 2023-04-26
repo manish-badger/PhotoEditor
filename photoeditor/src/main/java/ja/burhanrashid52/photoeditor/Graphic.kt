@@ -15,7 +15,7 @@ internal abstract class Graphic(
     val context: Context,
     val layoutId: Int,
     val viewType: ViewType,
-    val graphicManager: GraphicManager?) {
+    val graphicManager: GraphicManagerOriginal?) {
 
     val rootView: View
 
@@ -54,11 +54,11 @@ internal abstract class Graphic(
     }
 
     protected fun buildGestureController(
-        photoEditorView: PhotoEditorView,
-        viewState: PhotoEditorViewState
-    ): OnGestureControl {
-        val boxHelper = BoxHelper(photoEditorView, viewState)
-        return object : OnGestureControl {
+        photoEditorView: PhotoEditorViewOriginal,
+        viewState: PhotoEditorViewStateOriginal
+    ): MultiTouchListenerOriginal.OnGestureControl {
+        val boxHelper = BoxHelperOriginal(photoEditorView, viewState)
+        return object : MultiTouchListenerOriginal.OnGestureControl {
             override fun onClick() {
                 boxHelper.clearHelperBox()
                 toggleSelection()

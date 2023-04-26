@@ -3,4 +3,7 @@
     <declare-styleable name="PhotoEditorView">
         <attr name="photo_src" format="integer" />
     </declare-styleable>
+
+    <!--Content id for a Graphical content -->
+    <item type="id" name="content" />
 </resources>

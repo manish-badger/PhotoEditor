@@ -19,11 +19,11 @@ import kotlin.math.min
  */
 internal class MultiTouchListenerOriginal(
     deleteView: View?,
-    photoEditorView: PhotoEditorView,
+    photoEditorView: PhotoEditorViewOriginal,
     photoEditImageView: ImageView?,
     private val mIsPinchScalable: Boolean,
     onPhotoEditorListener: OnPhotoEditorListener?,
-    viewState: PhotoEditorViewState
+    viewState: PhotoEditorViewStateOriginal
 ) : OnTouchListener {
     private val mGestureListener: GestureDetector
     private val isRotateEnabled = true
@@ -41,11 +41,11 @@ internal class MultiTouchListenerOriginal(
     private var outRect: Rect? = null
     private val deleteView: View?
     private val photoEditImageView: ImageView?
-    private val photoEditorView: PhotoEditorView
+    private val photoEditorView: PhotoEditorViewOriginal
     private var onMultiTouchListener: OnMultiTouchListener? = null
     private var mOnGestureControl: OnGestureControl? = null
     private val mOnPhotoEditorListener: OnPhotoEditorListener?
-    private val viewState: PhotoEditorViewState
+    private val viewState: PhotoEditorViewStateOriginal
     override fun onTouch(view: View, event: MotionEvent): Boolean {
         mScaleGestureDetector.onTouchEvent(view, event)
         mGestureListener.onTouchEvent(event)

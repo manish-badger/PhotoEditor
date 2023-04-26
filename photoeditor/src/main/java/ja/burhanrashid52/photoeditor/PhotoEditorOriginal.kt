@@ -1,6 +1,7 @@
 package ja.burhanrashid52.photoeditor
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Typeface
@@ -8,6 +9,7 @@ import android.view.View
 import android.widget.ImageView
 import androidx.annotation.IntRange
 import androidx.annotation.RequiresPermission
+import androidx.annotation.UiThread
 import ja.burhanrashid52.photoeditor.shape.ShapeBuilder
 
 /**
@@ -15,17 +17,90 @@ import ja.burhanrashid52.photoeditor.shape.ShapeBuilder
  *
  * @author <https:></https:>//github.com/burhanrashid52>
  */
-interface PhotoEditor {
+interface PhotoEditorOriginal {
+    /**
+     * This will add image on [PhotoEditorView] which you drag,rotate and scale using pinch
+     * if [PhotoEditorOriginal.Builder.setPinchTextScalable] enabled
+     *
+     * @param desiredImage bitmap image you want to add
+     */
+    fun addImage(desiredImage: Bitmap?)
 
-    fun addImage(stickerBuilder: StickerBuilder): StickerGraphicalElement
+    /**
+     * This add the text on the [PhotoEditorView] with provided parameters
+     * by default [TextView.setText] will be 18sp
+     *
+     * @param text              text to display
+     * @param colorCodeTextView text color to be displayed
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    fun addText(text: String?, colorCodeTextView: Int)
 
-    fun addText(textGraphicalElementBuilder: TextGraphicalElementBuilder): TextGraphicalElement
+    /**
+     * This add the text on the [PhotoEditorView] with provided parameters
+     * by default [TextView.setText] will be 18sp
+     *
+     * @param textTypeface      typeface for custom font in the text
+     * @param text              text to display
+     * @param colorCodeTextView text color to be displayed
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    fun addText(textTypeface: Typeface?, text: String?, colorCodeTextView: Int)
 
-    fun removeGraphicalElement(tag: String): Boolean
+    /**
+     * This add the text on the [PhotoEditorView] with provided parameters
+     * by default [TextView.setText] will be 18sp
+     *
+     * @param text         text to display
+     * @param styleBuilder text style builder with your style
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    fun addText(text: String?, styleBuilder: TextStyleBuilder?)
 
-    fun getGraphicalElement(tag: String): GraphicalBase?
+    /**
+     * This will update text and color on provided view
+     *
+     * @param view      view on which you want update
+     * @param inputText text to update [TextView]
+     * @param colorCode color to update on [TextView]
+     */
+    fun editText(view: View, inputText: String?, colorCode: Int)
 
-    fun addEmoji(emojiGraphicalElementBuilder: EmojiGraphicalElementBuilder): EmojiGraphicalElement
+    /**
+     * This will update the text and color on provided view
+     *
+     * @param view         root view where text view is a child
+     * @param textTypeface update typeface for custom font in the text
+     * @param inputText    text to update [TextView]
+     * @param colorCode    color to update on [TextView]
+     */
+    fun editText(view: View, textTypeface: Typeface?, inputText: String?, colorCode: Int)
+
+    /**
+     * This will update the text and color on provided view
+     *
+     * @param view         root view where text view is a child
+     * @param inputText    text to update [TextView]
+     * @param styleBuilder style to apply on [TextView]
+     */
+    fun editText(view: View, inputText: String?, styleBuilder: TextStyleBuilder?)
+
+    /**
+     * Adds emoji to the [PhotoEditorView] which you drag,rotate and scale using pinch
+     * if [PhotoEditorImplOriginal.Builder.setPinchTextScalable] enabled
+     *
+     * @param emojiName unicode in form of string to display emoji
+     */
+    fun addEmoji(emojiName: String?)
+
+    /**
+     * Adds emoji to the [PhotoEditorView] which you drag,rotate and scale using pinch
+     * if [PhotoEditorImplOriginal.Builder.setPinchTextScalable] enabled
+     *
+     * @param emojiTypeface typeface for custom font to show emoji unicode in specific font
+     * @param emojiName     unicode in form of string to display emoji
+     */
+    fun addEmoji(emojiTypeface: Typeface?, emojiName: String?)
 
     /**
      * Enable/Disable drawing mode to draw on [PhotoEditorView]
@@ -60,12 +135,12 @@ interface PhotoEditor {
 
     /**
      * @return provide the size of eraser
-     * @see PhotoEditor.setBrushEraserSize
+     * @see PhotoEditorOriginal.setBrushEraserSize
      */
     val eraserSize: Float
     /**
      * @return provide the size of eraser
-     * @see PhotoEditor.setBrushSize
+     * @see PhotoEditorOriginal.setBrushSize
      */
     /**
      * Set the size of brush user want to paint on canvas i.e [DrawingView]
@@ -79,7 +154,7 @@ interface PhotoEditor {
     var brushSize: Float
     /**
      * @return provide the size of eraser
-     * @see PhotoEditor.setBrushColor
+     * @see PhotoEditorOriginal.setBrushColor
      */
     /**
      * set brush color which user want to paint
@@ -105,14 +180,14 @@ interface PhotoEditor {
     fun brushEraser()
 
     /**
-     * Undo the last operation perform on the [PhotoEditor]
+     * Undo the last operation perform on the [PhotoEditorOriginal]
      *
      * @return true if there nothing more to undo
      */
     fun undo(): Boolean
 
     /**
-     * Redo the last operation perform on the [PhotoEditor]
+     * Redo the last operation perform on the [PhotoEditorOriginal]
      *
      * @return true if there nothing more to redo
      */
@@ -123,6 +198,12 @@ interface PhotoEditor {
      * This will also clear the undo and redo stack
      */
     fun clearAllViews()
+
+    /**
+     * Remove all helper boxes from views
+     */
+    @UiThread
+    fun clearHelperBox()
 
     /**
      * Setup of custom effect using effect type and set parameters values
@@ -157,6 +238,14 @@ interface PhotoEditor {
      */
     suspend fun saveAsBitmap(saveSettings: SaveSettings = SaveSettings.Builder().build()): Bitmap
 
+    fun saveAsFile(imagePath: String, saveSettings: SaveSettings, onSaveListener: OnSaveListener)
+
+    fun saveAsFile(imagePath: String, onSaveListener: OnSaveListener)
+
+    fun saveAsBitmap(saveSettings: SaveSettings, onSaveBitmap: OnSaveBitmap)
+
+    fun saveAsBitmap(onSaveBitmap: OnSaveBitmap)
+
     /**
      * Callback on editing operation perform on [PhotoEditorView]
      *
@@ -172,9 +261,9 @@ interface PhotoEditor {
     val isCacheEmpty: Boolean
 
     /**
-     * Builder pattern to define [PhotoEditor] Instance
+     * Builder pattern to define [PhotoEditorOriginal] Instance
      */
-    class Builder(var context: Context, var photoEditorView: PhotoEditorView) {
+    class Builder(var context: Context, var photoEditorView: PhotoEditorViewOriginal) {
         @JvmField
         var imageView: ImageView
 
@@ -182,7 +271,10 @@ interface PhotoEditor {
         var deleteView: View? = null
 
         @JvmField
-        var drawingView: DrawingView? = null
+        var drawingView: DrawingViewOriginal? = null
+
+        @JvmField
+        var textTypeface: Typeface? = null
 
         @JvmField
         var emojiTypeface: Typeface? = null
@@ -212,10 +304,21 @@ interface PhotoEditor {
         }
 
         /**
+         * set default text font to be added on image
+         *
+         * @param textTypeface typeface for custom font
+         * @return [Builder] instant to build [PhotoEditorOriginal]
+         */
+        fun setDefaultTextTypeface(textTypeface: Typeface?): Builder {
+            this.textTypeface = textTypeface
+            return this
+        }
+
+        /**
          * set default font specific to add emojis
          *
          * @param emojiTypeface typeface for custom font
-         * @return [Builder] instant to build [PhotoEditor]
+         * @return [Builder] instant to build [PhotoEditorOriginal]
          */
         fun setDefaultEmojiTypeface(emojiTypeface: Typeface?): Builder {
             this.emojiTypeface = emojiTypeface
@@ -227,7 +330,7 @@ interface PhotoEditor {
          * Set to "true" by default.
          *
          * @param isTextPinchScalable flag to make pinch to zoom for text inserts.
-         * @return [Builder] instant to build [PhotoEditor]
+         * @return [Builder] instant to build [PhotoEditorOriginal]
          */
         fun setPinchTextScalable(isTextPinchScalable: Boolean): Builder {
             this.isTextPinchScalable = isTextPinchScalable
@@ -237,8 +340,8 @@ interface PhotoEditor {
         /**
          * @return build PhotoEditor instance
          */
-        fun build(): PhotoEditor {
-            return PhotoEditorImpl(this)
+        fun build(): PhotoEditorOriginal {
+            return PhotoEditorImplOriginal(this)
         }
 
         /**

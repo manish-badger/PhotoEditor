@@ -5,33 +5,33 @@ package ja.burhanrashid52.photoeditor
  *
  * @author <https:></https:>//github.com/burhanrashid52>
  */
-class BrushDrawingStateListener internal constructor(
-    private val mPhotoEditorView: PhotoEditorView,
-    private val mViewState: PhotoEditorViewState
-) : BrushViewChangeListener {
+class BrushDrawingStateListenerOriginal internal constructor(
+    private val mPhotoEditorView: PhotoEditorViewOriginal,
+    private val mViewState: PhotoEditorViewStateOriginal
+) : BrushViewChangeListenerOriginal {
     private var mOnPhotoEditorListener: OnPhotoEditorListener? = null
     fun setOnPhotoEditorListener(onPhotoEditorListener: OnPhotoEditorListener?) {
         mOnPhotoEditorListener = onPhotoEditorListener
     }
 
-    override fun onViewAdd(drawingGraphicalElement: DrawingGraphicalElement) {
+    override fun onViewAdd(drawingView: DrawingViewOriginal) {
         if (mViewState.redoViewsCount > 0) {
             mViewState.popRedoView()
         }
-        mViewState.addAddedView(drawingGraphicalElement)
+        mViewState.addAddedView(drawingView)
         mOnPhotoEditorListener?.onAddViewListener(
             ViewType.BRUSH_DRAWING,
             mViewState.addedViewsCount
         )
     }
 
-    override fun onViewRemoved(drawingGraphicalElement: DrawingGraphicalElement) {
+    override fun onViewRemoved(drawingView: DrawingViewOriginal) {
         if (mViewState.addedViewsCount > 0) {
             val removeView = mViewState.removeAddedView(
                 mViewState.addedViewsCount - 1
             )
-            if (drawingGraphicalElement.contentView !is DrawingView) {
-                mPhotoEditorView.removeView(drawingGraphicalElement.contentView)
+            if (removeView !is DrawingView) {
+                mPhotoEditorView.removeView(removeView)
             }
             mViewState.pushRedoView(removeView)
         }

@@ -11,10 +11,10 @@ import android.widget.TextView
  * @author <https:></https:>//github.com/burhanrashid52>
  */
 internal class Emoji(
-    private val mPhotoEditorView: PhotoEditorView,
-    private val mMultiTouchListener: MultiTouchListener,
-    private val mViewState: PhotoEditorViewState,
-    graphicManager: GraphicManager?,
+    private val mPhotoEditorView: PhotoEditorViewOriginal,
+    private val mMultiTouchListener: MultiTouchListenerOriginal,
+    private val mViewState: PhotoEditorViewStateOriginal,
+    graphicManager: GraphicManagerOriginal?,
     private val mDefaultEmojiTypeface: Typeface?
 ) : Graphic(
     context = mPhotoEditorView.context,

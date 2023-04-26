@@ -53,14 +53,14 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 
-class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickListener,
+class EditImageActivityOriginal : BaseActivity(), OnPhotoEditorListener, View.OnClickListener,
     PropertiesBSFragment.Properties, ShapeBSFragment.Properties, EmojiListener, StickerListener,
     OnItemSelected, FilterListener {
 
     private val viewModel: EditImageScreenViewModel by viewModels()
 
-    lateinit var mPhotoEditor: PhotoEditor
-    private lateinit var mPhotoEditorView: PhotoEditorView
+    lateinit var mPhotoEditor: PhotoEditorOriginal
+    private lateinit var mPhotoEditorView: PhotoEditorViewOriginal
     private lateinit var mPropertiesBSFragment: PropertiesBSFragment
     private lateinit var mShapeBSFragment: ShapeBSFragment
     private lateinit var mShapeBuilder: ShapeBuilder
@@ -83,7 +83,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         makeFullScreen()
-        setContentView(R.layout.activity_edit_image)
+        setContentView(R.layout.activity_edit_image_original)
 
         initViews()
 
@@ -114,7 +114,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
         //Typeface mTextRobotoTf = ResourcesCompat.getFont(this, R.font.roboto_medium);
         //Typeface mEmojiTypeFace = Typeface.createFromAsset(getAssets(), "emojione-android.ttf");
 
-        mPhotoEditor = PhotoEditor.Builder(this, mPhotoEditorView)
+        mPhotoEditor = PhotoEditorOriginal.Builder(this, mPhotoEditorView)
             .setPinchTextScalable(pinchTextScalable) // set flag to make text scalable when pinch
             //.setDefaultTextTypeface(mTextRobotoTf)
             //.setDefaultEmojiTypeface(mEmojiTypeFace)
@@ -133,7 +133,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                 viewModel.currentSourceUri = getUriForResource(applicationContext, R.drawable.paris_tower)
             }
             //mPhotoEditorView.source.setImageURI(viewModel.currentSourceUri)
-            Glide.with(this@EditImageActivity)
+            Glide.with(this@EditImageActivityOriginal)
                 .load(viewModel.currentSourceUri)
                 .fitCenter()
                 //.transform(MyRotationTransformation(getExifOrientation(applicationContext, cameraPickedImageUri)))
@@ -209,8 +209,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                 val styleBuilder = TextStyleBuilder()
                 styleBuilder.withTextColor(colorCode)
                 if (rootView != null) {
-                    // TODO: Uncomment and fix
-                    //mPhotoEditor.editText(rootView, inputText, styleBuilder)
+                    mPhotoEditor.editText(rootView, inputText, styleBuilder)
                 }
                 mTxtCurrentTool.setText(R.string.label_text)
             }
@@ -374,7 +373,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                             viewModel.cameraCapturedImageOutFile!!
                         )
                         viewModel.currentSourceUri = viewModel.pickedImageUri
-                        Glide.with(this@EditImageActivity)
+                        Glide.with(this@EditImageActivityOriginal)
                             .load(viewModel.currentSourceUri)
                             .fitCenter()
                             //.transform(MyRotationTransformation(getExifOrientation(applicationContext, cameraPickedImageUri)))
@@ -476,14 +475,12 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     }
 
     override fun onEmojiClick(emojiUnicode: String?) {
-        val emoji = mPhotoEditor.addEmoji(EmojiGraphicalElementBuilder())
-        emoji.contentView.text = emojiUnicode
+        mPhotoEditor.addEmoji(emojiUnicode)
         mTxtCurrentTool.setText(R.string.label_emoji)
     }
 
     override fun onStickerClick(bitmap: Bitmap?) {
-        val sticker = mPhotoEditor.addImage(StickerBuilder())
-        sticker.contentView.setImageBitmap(bitmap)
+        mPhotoEditor.addImage(bitmap)
         mTxtCurrentTool.setText(R.string.label_sticker)
     }
 
@@ -524,9 +521,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                     override fun onDone(inputText: String?, colorCode: Int) {
                         val styleBuilder = TextStyleBuilder()
                         styleBuilder.withTextColor(colorCode)
-                        val text = mPhotoEditor.addText(TextGraphicalElementBuilder())
-                        text.contentView.text = inputText
-                        text.contentView.setTextColor(colorCode)
+                        mPhotoEditor.addText(inputText, styleBuilder)
                         mTxtCurrentTool.setText(R.string.label_text)
                     }
                 })

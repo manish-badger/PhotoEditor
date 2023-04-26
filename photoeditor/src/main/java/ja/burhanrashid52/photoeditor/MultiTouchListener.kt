@@ -17,7 +17,7 @@ import kotlin.math.min
  *
  *
  */
-internal class MultiTouchListener(
+class MultiTouchListener(
     deleteView: View?,
     photoEditorView: PhotoEditorView,
     photoEditImageView: ImageView,
@@ -35,15 +35,13 @@ internal class MultiTouchListener(
     private var mPrevRawY = 0f
 
     private var onMultiTouchListener: OnMultiTouchListener? = null
-    private var mOnGestureControl: OnGestureControl? = null
-    private val mGestureListener: GestureDetector
 
     //private val mScaleGestureDetector: ScaleGestureDetector
     private val location = IntArray(2)
     private var outRect: Rect? = null
 
     private val deleteView: View?
-    private val photoEditImageView: ImageView?
+    private val photoEditImageView: ImageView
     private val photoEditorView: PhotoEditorView
     private val mOnPhotoEditorListener: OnPhotoEditorListener?
     private val viewState: PhotoEditorViewState
@@ -88,7 +86,7 @@ internal class MultiTouchListener(
         else{
             // The View will stay fixed at one place. No motion possible
         }
-        mGestureListener = GestureDetector(GestureListener())
+
         this.deleteView = deleteView
         this.photoEditorView = photoEditorView
         this.photoEditImageView = photoEditImageView
@@ -106,7 +104,6 @@ internal class MultiTouchListener(
 
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
-        mGestureListener.onTouchEvent(event)
         this.touchListeners.forEach {
             it.onTouch(view, event)
         }
@@ -123,7 +120,7 @@ internal class MultiTouchListener(
                 if (deleteView != null) {
                     deleteView.visibility = View.VISIBLE
                 }
-                view.bringToFront()
+                //view.bringToFront()
                 firePhotoEditorSDKListener(view, true)
             }
             MotionEvent.ACTION_MOVE ->{
@@ -157,6 +154,18 @@ internal class MultiTouchListener(
         return true
     }
 
+    fun addTouchHandler(touchHandler: BasePhotoEditorTouchListener){
+        this.touchListeners.apply {
+            touchHandler.let {
+                it.viewState = viewState
+                it.photoEditImageView = this@MultiTouchListener.photoEditImageView
+                it.photoEditorView = photoEditorView
+                it.mOnPhotoEditorListener = this@MultiTouchListener.mOnPhotoEditorListener
+            }
+            add(touchHandler)
+        }
+    }
+
     private fun firePhotoEditorSDKListener(view: View, isStart: Boolean) {
         val viewTag = view.tag
         if (mOnPhotoEditorListener != null && viewTag != null && viewTag is ViewType) {
@@ -179,31 +188,14 @@ internal class MultiTouchListener(
         this.onMultiTouchListener = onMultiTouchListener
     }
 
-    internal interface OnMultiTouchListener {
+    interface OnMultiTouchListener {
         fun onEditTextClickListener(text: String?, colorCode: Int)
         fun onRemoveViewListener(removedView: View?)
     }
 
-    internal interface OnGestureControl {
+    interface OnGestureControl {
         fun onClick()
         fun onLongClick()
-    }
-
-    fun setOnGestureControl(onGestureControl: OnGestureControl?) {
-        mOnGestureControl = onGestureControl
-    }
-
-    private inner class GestureListener : SimpleOnGestureListener() {
-        override fun onSingleTapUp(e: MotionEvent): Boolean {
-            mOnGestureControl?.onClick()
-
-            return true
-        }
-
-        override fun onLongPress(e: MotionEvent) {
-            super.onLongPress(e)
-            mOnGestureControl?.onLongClick()
-        }
     }
 
     companion object {

@@ -15,14 +15,13 @@ import androidx.annotation.RequiresPermission
 import ja.burhanrashid52.photoeditor.PhotoEditorImageViewListener.OnSingleTapUpCallback
 import ja.burhanrashid52.photoeditor.shape.ShapeBuilder
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.apache.sis.util.collection.WeakValueHashMap
 
 /**
  *
  *
- * This class in initialize by [PhotoEditor.Builder] using a builder pattern with multiple
+ * This class in initialize by [PhotoEditorOriginal.Builder] using a builder pattern with multiple
  * editing attributes
  *
  *
@@ -37,118 +36,73 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
     private val viewState: PhotoEditorViewState = PhotoEditorViewState()
     private val imageView: ImageView = builder.imageView
     private val deleteView: View? = builder.deleteView
-    private val drawingView: DrawingView? = builder.drawingView
+    private val drawingGraphicalElement: DrawingGraphicalElement =
+        DrawingGraphicalElement("drawing_view", photoEditorView, viewState).apply {
+            contentView = builder.drawingView
+        }
+    private val drawingView = drawingGraphicalElement.contentView
     private val mBrushDrawingStateListener: BrushDrawingStateListener =
         BrushDrawingStateListener(builder.photoEditorView, viewState)
     private val mBoxHelper: BoxHelper = BoxHelper(builder.photoEditorView, viewState)
     private var mOnPhotoEditorListener: OnPhotoEditorListener? = null
     private val isTextPinchScalable: Boolean = builder.isTextPinchScalable
-    private val mDefaultTextTypeface: Typeface? = builder.textTypeface
     private val mDefaultEmojiTypeface: Typeface? = builder.emojiTypeface
     private val mGraphicManager: GraphicManager = GraphicManager(builder.photoEditorView, viewState)
     private val context: Context = builder.context
 
-    override fun addImage(desiredImage: Bitmap?) {
-        val multiTouchListener = getMultiTouchListener(true)
-        val sticker = Sticker(photoEditorView, multiTouchListener, viewState, mGraphicManager)
-        sticker.buildView(desiredImage)
+    private val graphicalElements = WeakValueHashMap<String, GraphicalBase>(String::class.java, false)
+
+    override fun getGraphicalElement(tag: String): GraphicalBase? {
+        val element = graphicalElements[tag]
+        var found: Boolean = false
+        element?.let {
+            found = viewState.containsAddedView(it)
+        }
+        return if(found) {element} else {null}
+    }
+
+    override fun removeGraphicalElement(tag: String): Boolean {
+        val element = graphicalElements[tag]
+        var found: Boolean = false
+        element?.let {
+            found = viewState.containsAddedView(it)
+            mGraphicManager.removeView(it)
+        }
+        return found
+    }
+
+    override fun addImage(stickerBuilder: StickerBuilder): StickerGraphicalElement {
+        val sticker = stickerBuilder.build(
+            photoEditorView, viewState, mOnPhotoEditorListener, deleteView, imageView
+        )
+        sticker.contentView
         addToEditor(sticker)
+        graphicalElements[sticker.tag] = sticker
+        return sticker
     }
 
-    override fun addText(text: String?, colorCodeTextView: Int) {
-        addText(null, text, colorCodeTextView)
-    }
-
-    override fun addText(textTypeface: Typeface?, text: String?, colorCodeTextView: Int) {
-        val styleBuilder = TextStyleBuilder()
-        styleBuilder.withTextColor(colorCodeTextView)
-        if (textTypeface != null) {
-            styleBuilder.withTextFont(textTypeface)
-        }
-        addText(text, styleBuilder)
-    }
-
-    override fun addText(text: String?, styleBuilder: TextStyleBuilder?) {
-        drawingView?.enableDrawing(false)
-        val multiTouchListener = getMultiTouchListener(isTextPinchScalable)
-        val textGraphic = Text(
-            photoEditorView,
-            multiTouchListener,
-            viewState,
-            mDefaultTextTypeface,
-            mGraphicManager
+    override fun addText(textGraphicalElementBuilder: TextGraphicalElementBuilder): TextGraphicalElement {
+        val text = textGraphicalElementBuilder.build(
+            photoEditorView, viewState, mOnPhotoEditorListener, deleteView, imageView
         )
-        textGraphic.buildView(text, styleBuilder)
-        addToEditor(textGraphic)
+        addToEditor(text)
+        graphicalElements[text.tag] = text
+        return text
     }
 
-    override fun editText(view: View, inputText: String?, colorCode: Int) {
-        editText(view, null, inputText, colorCode)
-    }
-
-    override fun editText(view: View, textTypeface: Typeface?, inputText: String?, colorCode: Int) {
-        val styleBuilder = TextStyleBuilder()
-        styleBuilder.withTextColor(colorCode)
-        if (textTypeface != null) {
-            styleBuilder.withTextFont(textTypeface)
-        }
-        editText(view, inputText, styleBuilder)
-    }
-
-    override fun editText(view: View, inputText: String?, styleBuilder: TextStyleBuilder?) {
-        val inputTextView = view.findViewById<TextView>(R.id.tvPhotoEditorText)
-        if (inputTextView != null && viewState.containsAddedView(view) && !TextUtils.isEmpty(
-                inputText
-            )
-        ) {
-            inputTextView.text = inputText
-            styleBuilder?.applyStyle(inputTextView)
-            mGraphicManager.updateView(view)
-        }
-    }
-
-    override fun addEmoji(emojiName: String?) {
-        addEmoji(null, emojiName)
-    }
-
-    override fun addEmoji(emojiTypeface: Typeface?, emojiName: String?) {
-        drawingView?.enableDrawing(false)
-        val multiTouchListener = getMultiTouchListener(true)
-        val emoji = Emoji(
-            photoEditorView,
-            multiTouchListener,
-            viewState,
-            mGraphicManager,
-            mDefaultEmojiTypeface
+    override fun addEmoji(emojiGraphicalElementBuilder: EmojiGraphicalElementBuilder): EmojiGraphicalElement {
+        val text = emojiGraphicalElementBuilder.build(
+            photoEditorView, viewState, mOnPhotoEditorListener, deleteView, imageView
         )
-        emoji.buildView(emojiTypeface, emojiName)
-        addToEditor(emoji)
+        addToEditor(text)
+        graphicalElements[text.tag] = text
+        return text
     }
 
-    private fun addToEditor(graphic: Graphic) {
-        clearHelperBox()
+    private fun addToEditor(graphic: GraphicalBase) {
         mGraphicManager.addView(graphic)
         // Change the in-focus view
-        viewState.currentSelectedView = graphic.rootView
-    }
-
-    /**
-     * Create a new instance and scalable touchview
-     *
-     * @param isPinchScalable true if make pinch-scalable, false otherwise.
-     * @return scalable multitouch listener
-     */
-    private fun getMultiTouchListener(isPinchScalable: Boolean): MultiTouchListener {
-        return MultiTouchListener(
-            deleteView,
-            photoEditorView,
-            imageView,
-            isPinchScalable,
-            mOnPhotoEditorListener,
-            viewState,
-            true,
-            null
-        )
+        viewState.currentSelectedView = graphic
     }
 
     override fun setBrushDrawingMode(brushDrawingMode: Boolean) {
@@ -195,11 +149,22 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
     }
 
     override fun clearAllViews() {
-        mBoxHelper.clearAllViews(drawingView)
+        clearAllViews(drawingGraphicalElement)
     }
 
-    override fun clearHelperBox() {
-        mBoxHelper.clearHelperBox()
+    private fun clearAllViews(graphicalElement: DrawingGraphicalElement) {
+        for (i in 0 until viewState.addedViewsCount) {
+            photoEditorView.removeView(viewState.getAddedView(i).rootView)
+        }
+        graphicalElement.let {
+            if (viewState.containsAddedView(it)) {
+                photoEditorView.addView(it.contentView)
+            }
+        }
+
+        viewState.clearAddedViews()
+        viewState.clearRedoViews()
+        graphicalElement.contentView?.clearAll()
     }
 
     override fun setFilterEffect(customEffect: CustomEffect?) {
@@ -216,7 +181,7 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
         saveSettings: SaveSettings
     ): SaveFileResult = withContext(Dispatchers.Main) {
         photoEditorView.saveFilter()
-        val photoSaverTask = PhotoSaverTask(photoEditorView, mBoxHelper, saveSettings)
+        val photoSaverTask = PhotoSaverTask(this@PhotoEditorImpl, photoEditorView, drawingGraphicalElement, mBoxHelper, saveSettings)
         return@withContext photoSaverTask.saveImageAsFile(imagePath)
     }
 
@@ -224,38 +189,8 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
         saveSettings: SaveSettings
     ): Bitmap = withContext(Dispatchers.Main) {
         photoEditorView.saveFilter()
-        val photoSaverTask = PhotoSaverTask(photoEditorView, mBoxHelper, saveSettings)
+        val photoSaverTask = PhotoSaverTask(this@PhotoEditorImpl, photoEditorView, drawingGraphicalElement, mBoxHelper, saveSettings)
         return@withContext photoSaverTask.saveImageAsBitmap()
-    }
-
-    @RequiresPermission(allOf = [Manifest.permission.WRITE_EXTERNAL_STORAGE])
-    override fun saveAsFile(
-        imagePath: String,
-        saveSettings: SaveSettings,
-        onSaveListener: PhotoEditor.OnSaveListener
-    ) {
-        GlobalScope.launch(Dispatchers.Main) {
-            when (val result = saveAsFile(imagePath, saveSettings)) {
-                is SaveFileResult.Success -> onSaveListener.onSuccess(imagePath)
-                is SaveFileResult.Failure -> onSaveListener.onFailure(result.exception)
-            }
-        }
-    }
-
-    @RequiresPermission(allOf = [Manifest.permission.WRITE_EXTERNAL_STORAGE])
-    override fun saveAsFile(imagePath: String, onSaveListener: PhotoEditor.OnSaveListener) {
-        saveAsFile(imagePath, SaveSettings.Builder().build(), onSaveListener)
-    }
-
-    override fun saveAsBitmap(saveSettings: SaveSettings, onSaveBitmap: OnSaveBitmap) {
-        GlobalScope.launch(Dispatchers.Main) {
-            val bitmap = saveAsBitmap(saveSettings)
-            onSaveBitmap.onBitmapReady(bitmap)
-        }
-    }
-
-    override fun saveAsBitmap(onSaveBitmap: OnSaveBitmap) {
-        saveAsBitmap(SaveSettings.Builder().build(), onSaveBitmap)
     }
 
     override fun setOnPhotoEditorListener(onPhotoEditorListener: OnPhotoEditorListener) {
@@ -277,6 +212,7 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
     }
 
     init {
+        drawingView?.drawingGraphicalElement = this@PhotoEditorImpl.drawingGraphicalElement
         drawingView?.setBrushViewChangeListener(mBrushDrawingStateListener)
         val mDetector = GestureDetector(
             context,
@@ -284,7 +220,7 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
                 viewState,
                 object : OnSingleTapUpCallback {
                     override fun onSingleTapUp() {
-                        clearHelperBox()
+                        //clearHelperBox()
                     }
                 }
             )

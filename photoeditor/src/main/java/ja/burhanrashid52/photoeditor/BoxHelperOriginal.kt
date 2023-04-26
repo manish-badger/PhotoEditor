@@ -9,9 +9,9 @@ import android.widget.ImageView
  *
  * @author <https:></https:>//github.com/burhanrashid52>
  */
-internal class BoxHelper(
-    private val mPhotoEditorView: PhotoEditorView,
-    private val mViewState: PhotoEditorViewState
+internal class BoxHelperOriginal(
+    private val mPhotoEditorView: PhotoEditorViewOriginal,
+    private val mViewState: PhotoEditorViewStateOriginal
 ) {
     fun clearHelperBox() {
         for (i in 0 until mPhotoEditorView.childCount) {
@@ -22,5 +22,20 @@ internal class BoxHelper(
             imgClose?.visibility = View.GONE
         }
         mViewState.clearCurrentSelectedView()
+    }
+
+    fun clearAllViews(drawingView: DrawingViewOriginal?) {
+        for (i in 0 until mViewState.addedViewsCount) {
+            mPhotoEditorView.removeView(mViewState.getAddedView(i))
+        }
+        drawingView?.let {
+            if (mViewState.containsAddedView(it)) {
+                mPhotoEditorView.addView(it)
+            }
+        }
+
+        mViewState.clearAddedViews()
+        mViewState.clearRedoViews()
+        drawingView?.clearAll()
     }
 }

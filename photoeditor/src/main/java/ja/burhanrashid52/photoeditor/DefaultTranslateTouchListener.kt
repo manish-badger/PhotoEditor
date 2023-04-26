@@ -58,7 +58,7 @@ class DefaultTranslateTouchListener: BasePhotoEditorTouchListener {
             }
             MotionEvent.ACTION_MOVE ->
                 // Only enable dragging on focused stickers.
-                if (view === viewState.currentSelectedView) {
+                if (view === viewState.currentSelectedView?.rootView) {
                     val pointerIndexMove = event.findPointerIndex(mActivePointerId)
                     if (pointerIndexMove != -1) {
                         val currX = event.getX(pointerIndexMove)

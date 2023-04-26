@@ -23,7 +23,7 @@ class GraphicManagerTest {
         val id = R.layout.view_photo_editor_text
         val childId = R.id.frmBorder
         val photoEditorView = PhotoEditorView(mContext)
-        val graphicManager = GraphicManager(photoEditorView, PhotoEditorViewState())
+        val graphicManager = GraphicManagerOriginal(photoEditorView, PhotoEditorViewStateOriginal())
         val graphic: Graphic = object : Graphic(
             context = mContext,
             layoutId = id,
