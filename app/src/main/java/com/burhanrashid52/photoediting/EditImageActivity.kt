@@ -7,6 +7,8 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Point
+import android.graphics.PointF
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
@@ -15,6 +17,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.MediaStore
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -49,6 +52,7 @@ import com.burhanrashid52.photoediting.tools.EditingToolsAdapter
 import com.burhanrashid52.photoediting.tools.EditingToolsAdapter.OnItemSelected
 import com.burhanrashid52.photoediting.tools.ToolType
 import com.burhanrashid52.photoediting.util.getUriForResource
+import com.crazylegend.view.dp
 import com.crazylegend.view.dpToPx
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import ja.burhanrashid52.photoeditor.*
@@ -522,6 +526,12 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                     }))
                 })
         )
+        sticker.rootView.post {
+            sticker.rootView.apply {
+                x = (binding.photoEditorView.right - 32.dp - this.width).toFloat()
+                y = (binding.photoEditorView.bottom - 32.dp - this.height).toFloat()
+            }
+        }
         tag = sticker.tag
         sticker.contentView.setImageBitmap(bitmap)
         binding.txtCurrentTool.setText(R.string.label_sticker)
