@@ -10,10 +10,6 @@ import androidx.annotation.LayoutRes
  *
  * @author <https:></https:>//github.com/burhanrashid52>
  */
-// The name "GraphicalBase": Originally termed as "Graphic" by the lib developers, Graphic
-// is supposed to be a representation of graphical data, such as, Bitmap but the responsibilities
-// are not true to the concept of a "graphic".
-// It is due to this reason, we have changed the name to such.
 abstract class LayoutGraphicalBase(
     context: Context,
     tag: String,
