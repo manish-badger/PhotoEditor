@@ -7,6 +7,10 @@
         android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <uses-sdk tools:overrideLibrary="com.crazylegend.activity, com.crazylegend.fragment, com.crazylegend.context, com.crazylegend.view, com.crazylegend.contextgetters, com.crazylegend.common"/>
+
     <application
         android:name="com.burhanrashid52.photoediting.PhotoApp"
         android:allowBackup="false"
@@ -17,6 +21,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        tools:overrideLibrary="com.crazylegend.activity"
         tools:ignore="GoogleAppIndexingWarning"
         tools:replace="android:allowBackup">
         <activity

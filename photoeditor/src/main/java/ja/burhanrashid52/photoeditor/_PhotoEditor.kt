@@ -1,7 +1,6 @@
 package ja.burhanrashid52.photoeditor
 
 import android.Manifest
-import android.graphics.Bitmap
 import android.view.View
 import androidx.annotation.RequiresPermission
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +39,7 @@ fun PhotoEditor.saveAsBitmap(onSaveBitmap: OnSaveBitmap) {
 
 fun PhotoEditor.boundedBoxSticker(): StickerGraphicalElement{
     val sticker = addImage(
-        StickerBuilder().layoutId(R.layout.bounded_box_iv_based_sticker)
+        StickerGraphicalElementBuilder().layoutId(R.layout.bounded_box_iv_based_sticker)
     )
     val closeView = sticker.rootView.findViewById<View>(R.id.close)
     closeView.setOnClickListener {
@@ -69,4 +68,11 @@ fun PhotoEditor.boundedBoxEmoji(): EmojiGraphicalElement{
         removeGraphicalElement(text.tag)
     }
     return text
+}
+
+fun PhotoEditor.defaultTouchBehaviors(): MutableList<BasePhotoEditorTouchListener>{
+    return arrayListOf(
+        DefaultTranslateTouchListener(true),
+        DefaultScaleTouchListener(true)
+    )
 }

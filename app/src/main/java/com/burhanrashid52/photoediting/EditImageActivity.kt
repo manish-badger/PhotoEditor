@@ -2,31 +2,34 @@ package com.burhanrashid52.photoediting
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.provider.MediaStore
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnticipateOvershootInterpolator
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.RelativeLayout
 import androidx.activity.viewModels
 import androidx.annotation.RequiresPermission
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
 import com.bumptech.glide.Glide
@@ -38,12 +41,15 @@ import com.bumptech.glide.request.target.Target
 import com.burhanrashid52.photoediting.EmojiBSFragment.EmojiListener
 import com.burhanrashid52.photoediting.StickerBSFragment.StickerListener
 import com.burhanrashid52.photoediting.base.BaseActivity
+import com.burhanrashid52.photoediting.databinding.ActivityEditImageBinding
+import com.burhanrashid52.photoediting.databinding.DragToDeleteBinding
 import com.burhanrashid52.photoediting.filters.FilterListener
 import com.burhanrashid52.photoediting.filters.FilterViewAdapter
 import com.burhanrashid52.photoediting.tools.EditingToolsAdapter
 import com.burhanrashid52.photoediting.tools.EditingToolsAdapter.OnItemSelected
 import com.burhanrashid52.photoediting.tools.ToolType
 import com.burhanrashid52.photoediting.util.getUriForResource
+import com.crazylegend.view.dpToPx
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import ja.burhanrashid52.photoeditor.*
 import ja.burhanrashid52.photoeditor.shape.ShapeBuilder
@@ -53,6 +59,7 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 
+
 class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickListener,
     PropertiesBSFragment.Properties, ShapeBSFragment.Properties, EmojiListener, StickerListener,
     OnItemSelected, FilterListener {
@@ -60,19 +67,14 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     private val viewModel: EditImageScreenViewModel by viewModels()
 
     lateinit var mPhotoEditor: PhotoEditor
-    private lateinit var mPhotoEditorView: PhotoEditorView
     private lateinit var mPropertiesBSFragment: PropertiesBSFragment
     private lateinit var mShapeBSFragment: ShapeBSFragment
     private lateinit var mShapeBuilder: ShapeBuilder
     private lateinit var mEmojiBSFragment: EmojiBSFragment
     private lateinit var mStickerBSFragment: StickerBSFragment
-    private lateinit var mTxtCurrentTool: TextView
 
-    private lateinit var mRvTools: RecyclerView
-    private lateinit var mRvFilters: RecyclerView
     private val mEditingToolsAdapter = EditingToolsAdapter(this)
     private val mFilterViewAdapter = FilterViewAdapter(this)
-    private lateinit var mRootView: ConstraintLayout
     private val mConstraintSet = ConstraintSet()
 
     @VisibleForTesting
@@ -80,12 +82,28 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
 
     private lateinit var mSaveFileHelper: FileSaveHelper
 
+    private var _binding: ActivityEditImageBinding? = null
+    private val binding: ActivityEditImageBinding get() = _binding!!
+
+    private var _bindingDragToDelete: DragToDeleteBinding? = null
+    private val bindingDragToDelete: DragToDeleteBinding get() = _bindingDragToDelete!!
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         makeFullScreen()
-        setContentView(R.layout.activity_edit_image)
+
+        _binding = ActivityEditImageBinding.inflate(LayoutInflater.from(this))
+        setContentView(binding.root)
 
         initViews()
+
+        _bindingDragToDelete = DragToDeleteBinding.inflate(LayoutInflater.from(this))
+        val layoutParams = RelativeLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+        )
+        binding.photoEditorView.addView(bindingDragToDelete.root, layoutParams)
+        // Initial visibility
+        bindingDragToDelete.actionDragToDelete.visibility = View.GONE
 
         //mPhotoEditorView.source.adjustViewBounds = false
 
@@ -101,12 +119,12 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
         mShapeBSFragment.setPropertiesChangeListener(this)
 
         val llmTools = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        mRvTools.layoutManager = llmTools
-        mRvTools.adapter = mEditingToolsAdapter
+        binding.rvConstraintTools.layoutManager = llmTools
+        binding.rvConstraintTools.adapter = mEditingToolsAdapter
 
         val llmFilters = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        mRvFilters.layoutManager = llmFilters
-        mRvFilters.adapter = mFilterViewAdapter
+        binding.rvFilterView.layoutManager = llmFilters
+        binding.rvFilterView.adapter = mFilterViewAdapter
 
         // NOTE(lucianocheng): Used to set integration testing parameters to PhotoEditor
         val pinchTextScalable = intent.getBooleanExtra(PINCH_TEXT_SCALABLE_INTENT_KEY, true)
@@ -114,7 +132,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
         //Typeface mTextRobotoTf = ResourcesCompat.getFont(this, R.font.roboto_medium);
         //Typeface mEmojiTypeFace = Typeface.createFromAsset(getAssets(), "emojione-android.ttf");
 
-        mPhotoEditor = PhotoEditor.Builder(this, mPhotoEditorView)
+        mPhotoEditor = PhotoEditor.Builder(this, binding.photoEditorView)
             .setPinchTextScalable(pinchTextScalable) // set flag to make text scalable when pinch
             //.setDefaultTextTypeface(mTextRobotoTf)
             //.setDefaultEmojiTypeface(mEmojiTypeFace)
@@ -127,10 +145,11 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
         // and coming back to this Activity then would change the orientation
         // of this Activity
         // Lets track if we requested a pick
-        if(!viewModel.pickImageRequested){
+        if (!viewModel.pickImageRequested) {
             // Normal flow
-            if(viewModel.currentSourceUri == null){
-                viewModel.currentSourceUri = getUriForResource(applicationContext, R.drawable.paris_tower)
+            if (viewModel.currentSourceUri == null) {
+                viewModel.currentSourceUri =
+                    getUriForResource(applicationContext, R.drawable.paris_tower)
             }
             //mPhotoEditorView.source.setImageURI(viewModel.currentSourceUri)
             Glide.with(this@EditImageActivity)
@@ -139,7 +158,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                 //.transform(MyRotationTransformation(getExifOrientation(applicationContext, cameraPickedImageUri)))
                 .skipMemoryCache(true)
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .into(mPhotoEditorView.source)
+                .into(binding.photoEditorView.source)
         }
 
         mSaveFileHelper = FileSaveHelper(this)
@@ -172,32 +191,20 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     }
 
     private fun initViews() {
-        mPhotoEditorView = findViewById(R.id.photoEditorView)
-        mTxtCurrentTool = findViewById(R.id.txtCurrentTool)
-        mRvTools = findViewById(R.id.rvConstraintTools)
-        mRvFilters = findViewById(R.id.rvFilterView)
-        mRootView = findViewById(R.id.rootView)
 
-        val imgUndo: ImageView = findViewById(R.id.imgUndo)
-        imgUndo.setOnClickListener(this)
+        binding.imgUndo.setOnClickListener(this)
 
-        val imgRedo: ImageView = findViewById(R.id.imgRedo)
-        imgRedo.setOnClickListener(this)
+        binding.imgRedo.setOnClickListener(this)
 
-        val imgCamera: ImageView = findViewById(R.id.imgCamera)
-        imgCamera.setOnClickListener(this)
+        binding.imgCamera.setOnClickListener(this)
 
-        val imgGallery: ImageView = findViewById(R.id.imgGallery)
-        imgGallery.setOnClickListener(this)
+        binding.imgGallery.setOnClickListener(this)
 
-        val imgSave: ImageView = findViewById(R.id.imgSave)
-        imgSave.setOnClickListener(this)
+        binding.imgSave.setOnClickListener(this)
 
-        val imgClose: ImageView = findViewById(R.id.imgClose)
-        imgClose.setOnClickListener(this)
+        binding.imgClose.setOnClickListener(this)
 
-        val imgShare: ImageView = findViewById(R.id.imgShare)
-        imgShare.setOnClickListener(this)
+        binding.imgShare.setOnClickListener(this)
     }
 
     override fun onEditTextChangeListener(rootView: View?, text: String?, colorCode: Int) {
@@ -212,7 +219,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                     // TODO: Uncomment and fix
                     //mPhotoEditor.editText(rootView, inputText, styleBuilder)
                 }
-                mTxtCurrentTool.setText(R.string.label_text)
+                binding.txtCurrentTool.setText(R.string.label_text)
             }
         })
     }
@@ -333,7 +340,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                                 hideLoading()
                                 showSnackbar("Image Saved Successfully")
                                 mSaveImageUri = uri
-                                mPhotoEditorView.source.setImageURI(mSaveImageUri)
+                                binding.photoEditorView.source.setImageURI(mSaveImageUri)
                             } else {
                                 hideLoading()
                                 Log.d("EditImageActivity", "Failed to save Image", (result as SaveFileResult.Failure).exception)
@@ -403,7 +410,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                                     return false
                                 }
                             })
-                            .into(mPhotoEditorView.source)
+                            .into(binding.photoEditorView.source)
                     }
                 }
                 PICK_REQUEST -> try {
@@ -411,9 +418,9 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                     mPhotoEditor.clearAllViews()
                     lifecycleScope.launch(){
                         viewModel.pickedImageUri = data?.data
-                        if(viewModel.pickedImageUri != null){
+                        if(viewModel.pickedImageUri != null) {
                             viewModel.currentSourceUri = viewModel.pickedImageUri
-                            mPhotoEditorView.source.setImageURI(viewModel.currentSourceUri)
+                            binding.photoEditorView.source.setImageURI(viewModel.currentSourceUri)
                             //mPhotoEditorView.source.setImageDrawable(viewModel.currentSourceDrawable)
 
                             /*GlideApp.with(this@EditImageActivity)
@@ -458,17 +465,17 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
 
     override fun onColorChanged(colorCode: Int) {
         mPhotoEditor.setShape(mShapeBuilder.withShapeColor(colorCode))
-        mTxtCurrentTool.setText(R.string.label_brush)
+        binding.txtCurrentTool.setText(R.string.label_brush)
     }
 
     override fun onOpacityChanged(opacity: Int) {
         mPhotoEditor.setShape(mShapeBuilder.withShapeOpacity(opacity))
-        mTxtCurrentTool.setText(R.string.label_brush)
+        binding.txtCurrentTool.setText(R.string.label_brush)
     }
 
     override fun onShapeSizeChanged(shapeSize: Int) {
         mPhotoEditor.setShape(mShapeBuilder.withShapeSize(shapeSize.toFloat()))
-        mTxtCurrentTool.setText(R.string.label_brush)
+        binding.txtCurrentTool.setText(R.string.label_brush)
     }
 
     override fun onShapePicked(shapeType: ShapeType) {
@@ -478,13 +485,60 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     override fun onEmojiClick(emojiUnicode: String?) {
         val emoji = mPhotoEditor.addEmoji(EmojiGraphicalElementBuilder())
         emoji.contentView.text = emojiUnicode
-        mTxtCurrentTool.setText(R.string.label_emoji)
+        binding.txtCurrentTool.setText(R.string.label_emoji)
     }
 
     override fun onStickerClick(bitmap: Bitmap?) {
-        val sticker = mPhotoEditor.boundedBoxSticker()
+        var tag: String? = null
+        val originalScale = FloatArray(2)
+        val sticker = mPhotoEditor.addImage(
+            StickerGraphicalElementBuilder()
+                .touchHandlers(mPhotoEditor.defaultTouchBehaviors().apply {
+                    add(DragToDeleteTouchListener(bindingDragToDelete.actionDragToDelete, object:
+                        DragToDeleteTouchListener.EventsListener{
+                        override fun onTouchIntersectDeleteView(positionRelToDeleteView: DragToDeleteTouchListener.PositionRelToDeleteView) {
+                            if(positionRelToDeleteView == DragToDeleteTouchListener.PositionRelToDeleteView.ENTERING_DELETE_VIEW){
+                                vibrationEffectOnEnterDeleteViewArea()
+                                mPhotoEditor.getGraphicalElement(tag!!)!!.rootView.let{
+                                    originalScale[0] = it.scaleX
+                                    originalScale[1] = it.scaleY
+                                }
+                                mPhotoEditor.getGraphicalElement(tag!!)!!.rootView.apply {
+                                    scaleX = dpToPx(70)/width
+                                    scaleY = dpToPx(70)/height
+                                }
+                            }
+                            else if(positionRelToDeleteView == DragToDeleteTouchListener.PositionRelToDeleteView.EXITING_DELETE_VIEW){
+                                mPhotoEditor.getGraphicalElement(tag!!)!!.rootView.apply {
+                                    scaleX = originalScale[0]
+                                    scaleY = originalScale[1]
+                                }
+                            }
+                        }
+
+                        override fun onTouchEndOverDeleteView() {
+                            mPhotoEditor.removeGraphicalElement(tag!!)
+                        }
+                    }))
+                })
+        )
+        tag = sticker.tag
         sticker.contentView.setImageBitmap(bitmap)
-        mTxtCurrentTool.setText(R.string.label_sticker)
+        binding.txtCurrentTool.setText(R.string.label_sticker)
+    }
+
+    private fun vibrationEffectOnEnterDeleteViewArea() {
+        val vibratorService = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if(vibratorService.hasVibrator()){
+            // Vibrate for 500 milliseconds
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibratorService.vibrate(VibrationEffect.createOneShot(
+                    500, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                //deprecated in API 26
+                vibratorService.vibrate(500)
+            }
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -514,7 +568,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                 mPhotoEditor.setBrushDrawingMode(true)
                 mShapeBuilder = ShapeBuilder()
                 mPhotoEditor.setShape(mShapeBuilder)
-                mTxtCurrentTool.setText(R.string.label_shape)
+                binding.txtCurrentTool.setText(R.string.label_shape)
                 showBottomSheetDialogFragment(mShapeBSFragment)
             }
             ToolType.TEXT -> {
@@ -527,16 +581,16 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                         val text = mPhotoEditor.addText(TextGraphicalElementBuilder())
                         text.contentView.text = inputText
                         text.contentView.setTextColor(colorCode)
-                        mTxtCurrentTool.setText(R.string.label_text)
+                        binding.txtCurrentTool.setText(R.string.label_text)
                     }
                 })
             }
             ToolType.ERASER -> {
                 mPhotoEditor.brushEraser()
-                mTxtCurrentTool.setText(R.string.label_eraser_mode)
+                binding.txtCurrentTool.setText(R.string.label_eraser_mode)
             }
             ToolType.FILTER -> {
-                mTxtCurrentTool.setText(R.string.label_filter)
+                binding.txtCurrentTool.setText(R.string.label_filter)
                 showFilter(true)
             }
             ToolType.EMOJI -> showBottomSheetDialogFragment(mEmojiBSFragment)
@@ -553,9 +607,9 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
 
     private fun showFilter(isVisible: Boolean) {
         viewModel.mIsFilterVisible = isVisible
-        mConstraintSet.clone(mRootView)
+        mConstraintSet.clone(binding.root)
 
-        val rvFilterId: Int = mRvFilters.id
+        val rvFilterId: Int = binding.rvFilterView.id
 
         if (isVisible) {
             mConstraintSet.clear(rvFilterId, ConstraintSet.START)
@@ -578,20 +632,25 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
         val changeBounds = ChangeBounds()
         changeBounds.duration = 350
         changeBounds.interpolator = AnticipateOvershootInterpolator(1.0f)
-        TransitionManager.beginDelayedTransition(mRootView, changeBounds)
+        TransitionManager.beginDelayedTransition(binding.root, changeBounds)
 
-        mConstraintSet.applyTo(mRootView)
+        mConstraintSet.applyTo(binding.root)
     }
 
     override fun onBackPressed() {
         if (viewModel.mIsFilterVisible) {
             showFilter(false)
-            mTxtCurrentTool.setText(R.string.app_name)
+            binding.txtCurrentTool.setText(R.string.app_name)
         } else if (!mPhotoEditor.isCacheEmpty) {
             showSaveDialog()
         } else {
             super.onBackPressed()
         }
+    }
+
+    override fun onDestroy() {
+        _binding = null
+        super.onDestroy()
     }
 
     companion object {

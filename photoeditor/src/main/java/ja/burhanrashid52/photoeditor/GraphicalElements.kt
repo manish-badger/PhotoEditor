@@ -1,6 +1,5 @@
 package ja.burhanrashid52.photoeditor
 
-import android.graphics.Typeface
 import android.view.View
 import android.widget.ImageView
 import androidx.annotation.LayoutRes
@@ -37,7 +36,7 @@ abstract class GraphicalElementBuilder<T: GraphicalElementBuilder<T>>{
     }
 }
 
-class StickerBuilder: GraphicalElementBuilder<StickerBuilder>() {
+class StickerGraphicalElementBuilder: GraphicalElementBuilder<StickerGraphicalElementBuilder>() {
 
     init{
         layoutId = R.layout.plain_iv_based_sticker

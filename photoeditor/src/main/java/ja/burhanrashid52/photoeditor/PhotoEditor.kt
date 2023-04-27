@@ -17,7 +17,7 @@ import ja.burhanrashid52.photoeditor.shape.ShapeBuilder
  */
 interface PhotoEditor {
 
-    fun addImage(stickerBuilder: StickerBuilder): StickerGraphicalElement
+    fun addImage(stickerBuilder: StickerGraphicalElementBuilder): StickerGraphicalElement
 
     fun addText(textGraphicalElementBuilder: TextGraphicalElementBuilder): TextGraphicalElement
 

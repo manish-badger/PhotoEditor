@@ -5,11 +5,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Typeface
-import android.text.TextUtils
 import android.view.GestureDetector
 import android.view.View
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.annotation.IntRange
 import androidx.annotation.RequiresPermission
 import ja.burhanrashid52.photoeditor.PhotoEditorImageViewListener.OnSingleTapUpCallback
@@ -71,7 +69,7 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
         return found
     }
 
-    override fun addImage(stickerBuilder: StickerBuilder): StickerGraphicalElement {
+    override fun addImage(stickerBuilder: StickerGraphicalElementBuilder): StickerGraphicalElement {
         val sticker = stickerBuilder.build(
             photoEditorView, viewState, mOnPhotoEditorListener, deleteView, imageView
         )
