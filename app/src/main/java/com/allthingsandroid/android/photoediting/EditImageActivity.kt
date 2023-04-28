@@ -579,7 +579,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     }
 
     override fun onFilterSelected(photoFilter: PhotoFilter) {
-        mPhotoEditor.setFilterEffect(photoFilter)
+        binding.photoEditorView.setFilterEffect(photoFilter)
     }
 
     override fun onToolSelected(toolType: ToolType) {

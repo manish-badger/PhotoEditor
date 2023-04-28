@@ -164,14 +164,6 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
         graphicalElement.contentView?.clearAll()
     }
 
-    override fun setFilterEffect(customEffect: CustomEffect?) {
-        photoEditorView.setFilterEffect(customEffect)
-    }
-
-    override fun setFilterEffect(filterType: PhotoFilter) {
-        photoEditorView.setFilterEffect(filterType)
-    }
-
     @RequiresPermission(allOf = [Manifest.permission.WRITE_EXTERNAL_STORAGE])
     override suspend fun saveAsFile(
         imagePath: String,

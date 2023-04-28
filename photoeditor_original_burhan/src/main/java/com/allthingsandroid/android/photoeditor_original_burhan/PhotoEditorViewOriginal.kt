@@ -1,4 +1,4 @@
-package com.allthingsandroid.android.photoeditor
+package com.allthingsandroid.android.photoeditor_original_burhan
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -8,10 +8,21 @@ import android.util.Log
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RelativeLayout
-import com.allthingsandroid.android.photoeditor.FilterImageView.OnImageChangedListener
-import com.allthingsandroid.android.photoeditor.R
+import com.allthingsandroid.android.photoeditor_original_burhan.FilterImageView.OnImageChangedListener
+import com.allthingsandroid.android.photoeditor_original_burhan.R
 
-class PhotoEditorView @JvmOverloads constructor(
+/**
+ *
+ *
+ * This ViewGroup will have the [DrawingView] to draw paint on it with [ImageView]
+ * which our source image
+ *
+ *
+ * @author [Burhanuddin Rashid](https://github.com/burhanrashid52)
+ * @version 0.1.1
+ * @since 1/18/2018
+ */
+class PhotoEditorViewOriginal @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
@@ -19,7 +30,7 @@ class PhotoEditorView @JvmOverloads constructor(
 
     private var mImgSource: FilterImageView = FilterImageView(context)
 
-    internal var drawingView: DrawingView
+    internal var drawingView: DrawingViewOriginal
         private set
 
     private var mImageFilterView: ImageFilterView
@@ -42,7 +53,7 @@ class PhotoEditorView @JvmOverloads constructor(
 
 
         //Setup drawing view
-        drawingView = DrawingView(context)
+        drawingView = DrawingViewOriginal(context)
         val brushParam = setupDrawingView()
 
         //Add image source
@@ -133,13 +144,13 @@ class PhotoEditorView @JvmOverloads constructor(
         }
     }
 
-    fun setFilterEffect(filterType: PhotoFilter) {
+    internal fun setFilterEffect(filterType: PhotoFilter) {
         mImageFilterView.visibility = VISIBLE
         mImageFilterView.setSourceBitmap(mImgSource.bitmap)
         mImageFilterView.setFilterEffect(filterType)
     }
 
-    fun setFilterEffect(customEffect: CustomEffect?) {
+    internal fun setFilterEffect(customEffect: CustomEffect?) {
         mImageFilterView.visibility = VISIBLE
         mImageFilterView.setSourceBitmap(mImgSource.bitmap)
         mImageFilterView.setFilterEffect(customEffect)

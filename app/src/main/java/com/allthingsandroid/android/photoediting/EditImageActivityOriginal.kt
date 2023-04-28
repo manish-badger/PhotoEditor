@@ -29,14 +29,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
-import com.allthingsandroid.android.photoeditor.OnPhotoEditorListener
-import com.allthingsandroid.android.photoeditor.PhotoEditorOriginal
-import com.allthingsandroid.android.photoeditor.PhotoEditorViewOriginal
-import com.allthingsandroid.android.photoeditor.PhotoFilter
-import com.allthingsandroid.android.photoeditor.SaveFileResult
-import com.allthingsandroid.android.photoeditor.SaveSettings
-import com.allthingsandroid.android.photoeditor.TextStyleBuilder
-import com.allthingsandroid.android.photoeditor.ViewType
+import com.allthingsandroid.android.photoeditor_original_burhan.OnPhotoEditorListener
+import com.allthingsandroid.android.photoeditor_original_burhan.PhotoFilter
+import com.allthingsandroid.android.photoeditor_original_burhan.SaveFileResult
+import com.allthingsandroid.android.photoeditor_original_burhan.SaveSettings
+import com.allthingsandroid.android.photoeditor_original_burhan.TextStyleBuilder
+import com.allthingsandroid.android.photoeditor_original_burhan.ViewType
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -47,31 +45,34 @@ import com.allthingsandroid.android.photoediting.EmojiBSFragment.EmojiListener
 import com.allthingsandroid.android.photoediting.StickerBSFragment.StickerListener
 import com.allthingsandroid.android.photoediting.base.BaseActivity
 import com.allthingsandroid.android.photoediting.filters.FilterListener
+import com.allthingsandroid.android.photoediting.filters.FilterListenerOriginal
 import com.allthingsandroid.android.photoediting.filters.FilterViewAdapter
+import com.allthingsandroid.android.photoediting.filters.FilterViewAdapterOriginal
 import com.allthingsandroid.android.photoediting.tools.EditingToolsAdapter
 import com.allthingsandroid.android.photoediting.tools.EditingToolsAdapter.OnItemSelected
 import com.allthingsandroid.android.photoediting.tools.ToolType
 import com.allthingsandroid.android.photoediting.util.getUriForResource
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.allthingsandroid.android.photoeditor.*
-import com.allthingsandroid.android.photoeditor.shape.ShapeBuilder
-import com.allthingsandroid.android.photoeditor.shape.ShapeType
-import com.allthingsandroid.android.photoediting.R
+import com.allthingsandroid.android.photoeditor_original_burhan.*
+import com.allthingsandroid.android.photoeditor_original_burhan.shape.ShapeBuilder
+import com.allthingsandroid.android.photoeditor_original_burhan.shape.ShapeType
+import com.allthingsandroid.android.photoeditor_original_burhan.PhotoEditorOriginal
+import com.allthingsandroid.android.photoeditor_original_burhan.PhotoEditorViewOriginal
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 import java.util.*
 
 class EditImageActivityOriginal : BaseActivity(), OnPhotoEditorListener, View.OnClickListener,
-    PropertiesBSFragment.Properties, ShapeBSFragment.Properties, EmojiListener, StickerListener,
-    OnItemSelected, FilterListener {
+    PropertiesBSFragment.Properties, ShapeBSFragmentOriginal.Properties, EmojiListener, StickerListener,
+    OnItemSelected, FilterListenerOriginal {
 
     private val viewModel: EditImageScreenViewModel by viewModels()
 
     lateinit var mPhotoEditor: PhotoEditorOriginal
     private lateinit var mPhotoEditorView: PhotoEditorViewOriginal
     private lateinit var mPropertiesBSFragment: PropertiesBSFragment
-    private lateinit var mShapeBSFragment: ShapeBSFragment
+    private lateinit var mShapeBSFragment: ShapeBSFragmentOriginal
     private lateinit var mShapeBuilder: ShapeBuilder
     private lateinit var mEmojiBSFragment: EmojiBSFragment
     private lateinit var mStickerBSFragment: StickerBSFragment
@@ -80,7 +81,7 @@ class EditImageActivityOriginal : BaseActivity(), OnPhotoEditorListener, View.On
     private lateinit var mRvTools: RecyclerView
     private lateinit var mRvFilters: RecyclerView
     private val mEditingToolsAdapter = EditingToolsAdapter(this)
-    private val mFilterViewAdapter = FilterViewAdapter(this)
+    private val mFilterViewAdapter = FilterViewAdapterOriginal(this)
     private lateinit var mRootView: ConstraintLayout
     private val mConstraintSet = ConstraintSet()
 
@@ -103,7 +104,7 @@ class EditImageActivityOriginal : BaseActivity(), OnPhotoEditorListener, View.On
         mPropertiesBSFragment = PropertiesBSFragment()
         mEmojiBSFragment = EmojiBSFragment()
         mStickerBSFragment = StickerBSFragment()
-        mShapeBSFragment = ShapeBSFragment()
+        mShapeBSFragment = ShapeBSFragmentOriginal()
         mStickerBSFragment.setStickerListener(this)
         mEmojiBSFragment.setEmojiListener(this)
         mPropertiesBSFragment.setPropertiesChangeListener(this)

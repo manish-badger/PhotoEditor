@@ -46,6 +46,7 @@ dependencies {
     //                     to work on locally modified code.
     //implementation 'com.burhanrashid52:photoeditor:3.0.0'
     implementation project(':photoeditor')
+    implementation project(':photoeditor_original_burhan')
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.cardview:cardview:1.0.0'
