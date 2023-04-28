@@ -1,8 +1,8 @@
-package ja.burhanrashid52.photoeditor
+package com.allthingsandroid.android.photoeditor
 
-import ja.burhanrashid52.photoeditor.shape.ShapeType
+import com.allthingsandroid.android.photoeditor.PhotoFilter
+import com.allthingsandroid.android.photoeditor.ViewType
 import junit.framework.TestCase.assertEquals
-import org.junit.Assert
 import org.junit.Test
 
 class EnumTest {
