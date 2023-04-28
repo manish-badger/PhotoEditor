@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.allthingsandroid.android.photoeditor
+package com.allthingsandroid.android.photoeditor.filter
 
 import android.opengl.GLES20
-import com.allthingsandroid.android.photoeditor.GLToolbox.checkGlError
-import com.allthingsandroid.android.photoeditor.GLToolbox.createProgram
+import com.allthingsandroid.android.photoeditor.filter.GLToolbox.checkGlError
+import com.allthingsandroid.android.photoeditor.filter.GLToolbox.createProgram
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer

@@ -1,7 +1,7 @@
-package com.allthingsandroid.android.photoeditor
+package com.allthingsandroid.android.photoeditor.filter
 
 import android.text.TextUtils
-import com.allthingsandroid.android.photoeditor.CustomEffect.Builder
+import com.allthingsandroid.android.photoeditor.filter.CustomEffect.Builder
 import java.util.*
 
 /**

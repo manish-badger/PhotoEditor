@@ -47,6 +47,8 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 
+    implementation project(":common")
+
     // https://mvnrepository.com/artifact/org.apache.sis.core/sis-utility
     implementation 'org.apache.sis.core:sis-utility:1.3'
 

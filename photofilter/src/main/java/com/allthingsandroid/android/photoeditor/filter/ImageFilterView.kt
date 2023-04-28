@@ -1,4 +1,4 @@
-package com.allthingsandroid.android.photoeditor
+package com.allthingsandroid.android.photoeditor.filter
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -10,8 +10,8 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.util.AttributeSet
-import com.allthingsandroid.android.photoeditor.BitmapUtil.createBitmapFromGLSurface
-import com.allthingsandroid.android.photoeditor.GLToolbox.initTexParams
+import com.allthingsandroid.android.photoeditor.common.BitmapUtil.createBitmapFromGLSurface
+import com.allthingsandroid.android.photoeditor.filter.GLToolbox.initTexParams
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.microedition.khronos.egl.EGLConfig

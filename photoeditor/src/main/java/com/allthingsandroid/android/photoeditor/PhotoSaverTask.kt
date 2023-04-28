@@ -3,7 +3,7 @@ package com.allthingsandroid.android.photoeditor
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
-import com.allthingsandroid.android.photoeditor.BitmapUtil.removeTransparency
+import com.allthingsandroid.android.photoeditor.common.BitmapUtil.removeTransparency
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

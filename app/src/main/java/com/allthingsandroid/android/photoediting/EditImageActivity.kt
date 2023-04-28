@@ -36,7 +36,7 @@ import com.allthingsandroid.android.photoeditor.DragToDeleteTouchListener
 import com.allthingsandroid.android.photoeditor.EmojiGraphicalElementBuilder
 import com.allthingsandroid.android.photoeditor.OnPhotoEditorListener
 import com.allthingsandroid.android.photoeditor.PhotoEditor
-import com.allthingsandroid.android.photoeditor.PhotoFilter
+import com.allthingsandroid.android.photoeditor.filter.PhotoFilter
 import com.allthingsandroid.android.photoeditor.SaveFileResult
 import com.allthingsandroid.android.photoeditor.SaveSettings
 import com.allthingsandroid.android.photoeditor.StickerGraphicalElementBuilder
@@ -67,7 +67,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.allthingsandroid.android.photoeditor.*
 import com.allthingsandroid.android.photoeditor.shape.ShapeBuilder
 import com.allthingsandroid.android.photoeditor.shape.ShapeType
-import com.allthingsandroid.android.photoediting.R
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
@@ -578,8 +577,8 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
         builder.create().show()
     }
 
-    override fun onFilterSelected(photoFilter: PhotoFilter) {
-        binding.photoEditorView.setFilterEffect(photoFilter)
+    override fun onFilterSelected(photoFilter: com.allthingsandroid.android.photoeditor.filter.PhotoFilter) {
+        //binding.photoEditorView.setFilterEffect(photoFilter)
     }
 
     override fun onToolSelected(toolType: ToolType) {

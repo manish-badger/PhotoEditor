@@ -1,4 +1,4 @@
-package com.allthingsandroid.android.photoeditor
+package com.allthingsandroid.android.photoeditor.filter
 
 /**
  *

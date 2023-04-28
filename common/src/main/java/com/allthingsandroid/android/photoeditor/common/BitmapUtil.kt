@@ -1,4 +1,4 @@
-package com.allthingsandroid.android.photoeditor
+package com.allthingsandroid.android.photoeditor.common
 
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -16,7 +16,7 @@ import javax.microedition.khronos.opengles.GL10
  * @version 0.1.2
  * @since 5/21/2018
  */
-internal object BitmapUtil {
+object BitmapUtil {
     /**
      * Remove transparency in edited bitmap
      *

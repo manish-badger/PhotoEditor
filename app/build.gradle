@@ -47,6 +47,7 @@ dependencies {
     //implementation 'com.burhanrashid52:photoeditor:3.0.0'
     implementation project(':photoeditor')
     implementation project(':photoeditor_original_burhan')
+    implementation project(":photofilter")
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.cardview:cardview:1.0.0'
@@ -68,8 +69,6 @@ dependencies {
     implementation "com.github.FunkyMuse.KAHelpers:view:$utilsVersion"
 
     implementation "com.github.FunkyMuse.KAHelpers:common:$utilsVersion"
-
-    implementation 'com.squareup.picasso:picasso:2.71828'
 
     testImplementation 'junit:junit:4.13.2'
 

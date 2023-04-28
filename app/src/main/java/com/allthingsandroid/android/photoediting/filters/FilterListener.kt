@@ -1,7 +1,7 @@
 package com.allthingsandroid.android.photoediting.filters
 
-import com.allthingsandroid.android.photoeditor.PhotoFilter
+import com.allthingsandroid.android.photoeditor.filter.PhotoFilter
 
 interface FilterListener {
-    fun onFilterSelected(photoFilter: PhotoFilter)
+    fun onFilterSelected(photoFilter: com.allthingsandroid.android.photoeditor.filter.PhotoFilter)
 }
