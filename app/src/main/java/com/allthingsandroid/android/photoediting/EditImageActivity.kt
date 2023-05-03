@@ -36,7 +36,6 @@ import com.allthingsandroid.android.photoeditor.DragToDeleteTouchListener
 import com.allthingsandroid.android.photoeditor.EmojiGraphicalElementBuilder
 import com.allthingsandroid.android.photoeditor.OnPhotoEditorListener
 import com.allthingsandroid.android.photoeditor.PhotoEditor
-import com.allthingsandroid.android.photoeditor.filter.PhotoFilter
 import com.allthingsandroid.android.photoeditor.SaveFileResult
 import com.allthingsandroid.android.photoeditor.SaveSettings
 import com.allthingsandroid.android.photoeditor.StickerGraphicalElementBuilder
@@ -502,46 +501,31 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     }
 
     override fun onStickerClick(bitmap: Bitmap?) {
-        var tag: String? = null
-        val originalScale = FloatArray(2)
         val sticker = mPhotoEditor.addImage(
             StickerGraphicalElementBuilder()
                 .touchHandlers(mPhotoEditor.defaultTouchBehaviors().apply {
-                    add(DragToDeleteTouchListener(bindingDragToDelete.actionDragToDelete, object:
+                    add(DefaultDragToDeleteTouchListener(bindingDragToDelete.actionDragToDelete, object:
                         DragToDeleteTouchListener.EventsListener{
-                        override fun onTouchIntersectDeleteView(positionRelToDeleteView: DragToDeleteTouchListener.PositionRelToDeleteView) {
+                        override fun onTouchIntersectDeleteView(
+                            tag: String,
+                            view: View,
+                            positionRelToDeleteView: DragToDeleteTouchListener.PositionRelToDeleteView
+                        ) {
                             if(positionRelToDeleteView == DragToDeleteTouchListener.PositionRelToDeleteView.ENTERING_DELETE_VIEW){
                                 vibrationEffectOnEnterDeleteViewArea()
-                                mPhotoEditor.getGraphicalElement(tag!!)!!.rootView.let{
-                                    originalScale[0] = it.scaleX
-                                    originalScale[1] = it.scaleY
-                                }
-                                mPhotoEditor.getGraphicalElement(tag!!)!!.rootView.apply {
-                                    scaleX = dpToPx(70)/width
-                                    scaleY = dpToPx(70)/height
-                                }
-                            }
-                            else if(positionRelToDeleteView == DragToDeleteTouchListener.PositionRelToDeleteView.EXITING_DELETE_VIEW){
-                                mPhotoEditor.getGraphicalElement(tag!!)!!.rootView.apply {
-                                    scaleX = originalScale[0]
-                                    scaleY = originalScale[1]
-                                }
                             }
                         }
 
-                        override fun onTouchEndOverDeleteView() {
-                            mPhotoEditor.removeGraphicalElement(tag!!)
+                        override fun onTouchEndOverDeleteView(tag: String, view: View) {
+                            mPhotoEditor.removeGraphicalElement(tag)
                         }
                     }))
                 })
         )
-        sticker.rootView.post {
-            sticker.rootView.apply {
-                x = (binding.photoEditorView.right - 32.dp - this.width).toFloat()
-                y = (binding.photoEditorView.bottom - 32.dp - this.height).toFloat()
-            }
+        sticker.rootView.apply {
+            x = (binding.photoEditorView.right - 32.dp - this.measuredWidth).toFloat()
+            y = (binding.photoEditorView.bottom - 32.dp - this.measuredHeight).toFloat()
         }
-        tag = sticker.tag
         sticker.contentView.setImageBitmap(bitmap)
         binding.txtCurrentTool.setText(R.string.label_sticker)
     }
