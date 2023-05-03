@@ -1,9 +1,7 @@
 package com.allthingsandroid.android.photoeditor
 
-import android.view.View
 import android.widget.ImageView
 import androidx.annotation.LayoutRes
-import com.allthingsandroid.android.photoeditor.R
 import java.util.*
 
 abstract class GraphicalElementBuilder<T: GraphicalElementBuilder<T>>{
@@ -43,14 +41,18 @@ class StickerGraphicalElementBuilder: GraphicalElementBuilder<StickerGraphicalEl
         layoutId = R.layout.plain_iv_based_sticker
     }
 
-    internal fun build(mPhotoEditorView: PhotoEditorView,
-                       mViewState: PhotoEditorViewState,
-                       mOnPhotoEditorListener: OnPhotoEditorListener?,
-                       deleteView: View?,
-                       sourceImageView: ImageView
+    internal fun build(
+        photoEditor: PhotoEditor,
+        mPhotoEditorView: PhotoEditorView,
+        mViewState: PhotoEditorViewState,
+        mOnPhotoEditorListener: OnPhotoEditorListener?,
+        sourceImageView: ImageView
     ): StickerGraphicalElement {
+        val tag = if(this.tag == null) {
+            UUID.randomUUID().toString()} else {this.tag!!}
         val multiTouchListener = MultiTouchListener(
-            deleteView,
+            tag,
+            photoEditor,
             mPhotoEditorView,
             sourceImageView,
             mIsPinchScalable = true,
@@ -60,8 +62,7 @@ class StickerGraphicalElementBuilder: GraphicalElementBuilder<StickerGraphicalEl
             touchHandlers
         )
         val instance = StickerGraphicalElement(
-            if(this.tag == null) {
-                UUID.randomUUID().toString()} else {this.tag!!},
+            tag,
             mPhotoEditorView,
             multiTouchListener,
             mViewState,
@@ -79,14 +80,18 @@ class TextGraphicalElementBuilder: GraphicalElementBuilder<TextGraphicalElementB
         layoutId = R.layout.plain_tv_based_text_graphical_element
     }
 
-    internal fun build(mPhotoEditorView: PhotoEditorView,
-                       mViewState: PhotoEditorViewState,
-                       mOnPhotoEditorListener: OnPhotoEditorListener?,
-                       deleteView: View?,
-                       sourceImageView: ImageView,
+    internal fun build(
+        photoEditor: PhotoEditor,
+        mPhotoEditorView: PhotoEditorView,
+        mViewState: PhotoEditorViewState,
+        mOnPhotoEditorListener: OnPhotoEditorListener?,
+        sourceImageView: ImageView,
     ): TextGraphicalElement {
+        val tag = if(this.tag == null) {
+            UUID.randomUUID().toString()} else {this.tag!!}
         val multiTouchListener = MultiTouchListener(
-            deleteView,
+            tag,
+            photoEditor,
             mPhotoEditorView,
             sourceImageView,
             mIsPinchScalable = true,
@@ -96,8 +101,7 @@ class TextGraphicalElementBuilder: GraphicalElementBuilder<TextGraphicalElementB
             touchHandlers
         )
         val instance = TextGraphicalElement(
-            if(this.tag == null) {
-                UUID.randomUUID().toString()} else {this.tag!!},
+            tag,
             mPhotoEditorView,
             multiTouchListener,
             mViewState,
@@ -115,14 +119,18 @@ class EmojiGraphicalElementBuilder: GraphicalElementBuilder<EmojiGraphicalElemen
         layoutId = R.layout.plain_tv_based_text_graphical_element
     }
 
-    internal fun build(mPhotoEditorView: PhotoEditorView,
-                       mViewState: PhotoEditorViewState,
-                       mOnPhotoEditorListener: OnPhotoEditorListener?,
-                       deleteView: View?,
-                       sourceImageView: ImageView,
+    internal fun build(
+        photoEditor: PhotoEditor,
+        mPhotoEditorView: PhotoEditorView,
+        mViewState: PhotoEditorViewState,
+        mOnPhotoEditorListener: OnPhotoEditorListener?,
+        sourceImageView: ImageView,
     ): EmojiGraphicalElement {
+        val tag = if(this.tag == null) {
+            UUID.randomUUID().toString()} else {this.tag!!}
         val multiTouchListener = MultiTouchListener(
-            deleteView,
+            tag,
+            photoEditor,
             mPhotoEditorView,
             sourceImageView,
             mIsPinchScalable = true,
@@ -132,8 +140,7 @@ class EmojiGraphicalElementBuilder: GraphicalElementBuilder<EmojiGraphicalElemen
             touchHandlers
         )
         val instance = EmojiGraphicalElement(
-            if(this.tag == null) {
-                UUID.randomUUID().toString()} else {this.tag!!},
+            tag,
             mPhotoEditorView,
             multiTouchListener,
             mViewState,

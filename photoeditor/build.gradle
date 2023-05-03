@@ -49,6 +49,10 @@ dependencies {
 
     implementation project(":common")
 
+    def utilsVersion = "3.4.5"
+
+    implementation "com.github.FunkyMuse.KAHelpers:view:$utilsVersion"
+
     // https://mvnrepository.com/artifact/org.apache.sis.core/sis-utility
     implementation 'org.apache.sis.core:sis-utility:1.3'
 

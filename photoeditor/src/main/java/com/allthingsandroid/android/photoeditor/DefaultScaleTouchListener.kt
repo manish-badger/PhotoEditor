@@ -10,14 +10,16 @@ class DefaultScaleTouchListener: BaseScaleTouchListener {
 
     constructor(mIsPinchScalable: Boolean) : super(mIsPinchScalable)
     constructor(
+        photoEditor: PhotoEditor,
         photoEditorView: PhotoEditorView,
-        photoEditImageView: ImageView,
+        sourceImageView: ImageView,
         onPhotoEditorListener: OnPhotoEditorListener?,
         viewState: PhotoEditorViewState,
         mIsPinchScalable: Boolean
     ) : super(
+        photoEditor,
         photoEditorView,
-        photoEditImageView,
+        sourceImageView,
         onPhotoEditorListener,
         viewState,
         mIsPinchScalable
@@ -28,7 +30,7 @@ class DefaultScaleTouchListener: BaseScaleTouchListener {
         mScaleGestureDetector = ScaleGestureDetector(ScaleGestureListener())
     }
 
-    override fun onTouch(view: View, event: MotionEvent): Boolean {
+    override fun onTouch(tag: String, view: View, event: MotionEvent): Boolean {
         mScaleGestureDetector.onTouchEvent(view, event)
         return true
     }

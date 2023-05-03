@@ -12,13 +12,14 @@ internal class ClickGesturesTouchListener: BasePhotoEditorTouchListener {
 
     constructor() : super()
     constructor(
+        photoEditor: PhotoEditor,
         photoEditorView: PhotoEditorView,
-        photoEditImageView: ImageView,
+        sourceImageView: ImageView,
         onPhotoEditorListener: OnPhotoEditorListener?,
         viewState: PhotoEditorViewState
-    ) : super(photoEditorView, photoEditImageView, onPhotoEditorListener, viewState)
+    ) : super(photoEditor, photoEditorView, sourceImageView, onPhotoEditorListener, viewState)
 
-    override fun onTouch(view: View, event: MotionEvent): Boolean {
+    override fun onTouch(tag: String, view: View, event: MotionEvent): Boolean {
         val action = event.action
         when (action and event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {

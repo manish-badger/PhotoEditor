@@ -33,7 +33,6 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
     private val photoEditorView: PhotoEditorView = builder.photoEditorView
     private val viewState: PhotoEditorViewState = PhotoEditorViewState()
     private val imageView: ImageView = builder.imageView
-    private val deleteView: View? = builder.deleteView
     private val drawingGraphicalElement: DrawingGraphicalElement =
         DrawingGraphicalElement("drawing_view", photoEditorView, viewState).apply {
             contentView = builder.drawingView
@@ -71,7 +70,7 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
 
     override fun addImage(stickerBuilder: StickerGraphicalElementBuilder): StickerGraphicalElement {
         val sticker = stickerBuilder.build(
-            photoEditorView, viewState, mOnPhotoEditorListener, deleteView, imageView
+            this, photoEditorView, viewState, mOnPhotoEditorListener, imageView
         )
         addToEditor(sticker)
         graphicalElements[sticker.tag] = sticker
@@ -80,7 +79,7 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
 
     override fun addText(textGraphicalElementBuilder: TextGraphicalElementBuilder): TextGraphicalElement {
         val text = textGraphicalElementBuilder.build(
-            photoEditorView, viewState, mOnPhotoEditorListener, deleteView, imageView
+            this, photoEditorView, viewState, mOnPhotoEditorListener, imageView
         )
         addToEditor(text)
         graphicalElements[text.tag] = text
@@ -89,7 +88,7 @@ internal class PhotoEditorImpl @SuppressLint("ClickableViewAccessibility") const
 
     override fun addEmoji(emojiGraphicalElementBuilder: EmojiGraphicalElementBuilder): EmojiGraphicalElement {
         val text = emojiGraphicalElementBuilder.build(
-            photoEditorView, viewState, mOnPhotoEditorListener, deleteView, imageView
+            this, photoEditorView, viewState, mOnPhotoEditorListener, imageView
         )
         addToEditor(text)
         graphicalElements[text.tag] = text

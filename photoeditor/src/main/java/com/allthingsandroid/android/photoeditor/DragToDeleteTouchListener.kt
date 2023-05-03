@@ -13,7 +13,7 @@ import android.widget.ImageView
  *
  *
  */
-class DragToDeleteTouchListener: BasePhotoEditorTouchListener {
+open class DragToDeleteTouchListener: BasePhotoEditorTouchListener {
 
     private var mActivePointerId = INVALID_POINTER_ID
     private var mPrevX = 0f
@@ -26,7 +26,7 @@ class DragToDeleteTouchListener: BasePhotoEditorTouchListener {
 
     private val deleteView: View
 
-    private var eventsListener: EventsListener? = null
+    protected var eventsListener: EventsListener? = null
 
     private var mIsPinchScalable: Boolean = true
 
@@ -42,13 +42,14 @@ class DragToDeleteTouchListener: BasePhotoEditorTouchListener {
     })
 
     constructor(
+        photoEditor: PhotoEditor,
         photoEditorView: PhotoEditorView,
         photoEditImageView: ImageView,
         onPhotoEditorListener: OnPhotoEditorListener?,
         viewState: PhotoEditorViewState,
         deleteView: View,
         eventsListener: EventsListener?
-    ) : super(photoEditorView, photoEditImageView, onPhotoEditorListener, viewState){
+    ) : super(photoEditor, photoEditorView, photoEditImageView, onPhotoEditorListener, viewState){
         this.deleteView = deleteView
         this.eventsListener = eventsListener
         init()
@@ -71,7 +72,7 @@ class DragToDeleteTouchListener: BasePhotoEditorTouchListener {
     }
 
 
-    override fun onTouch(view: View, event: MotionEvent): Boolean {
+    override fun onTouch(tag: String, view: View, event: MotionEvent): Boolean {
         mNoOpScaleGestureDetector.onTouchEvent(view, event)
         val action = event.action
         val x = event.rawX.toInt()
@@ -100,11 +101,11 @@ class DragToDeleteTouchListener: BasePhotoEditorTouchListener {
                                 isViewInBounds(deleteView, currRawX.toInt(), currRawY.toInt())
                             if (previouslyInDeleteViewArea && !currentlyInDeleteViewArea){
                                 // Coming out of the Delete view area
-                                eventsListener?.onTouchIntersectDeleteView(PositionRelToDeleteView.EXITING_DELETE_VIEW)
+                                eventsListener?.onTouchIntersectDeleteView(tag, view, PositionRelToDeleteView.EXITING_DELETE_VIEW,)
                             }
                             else if(!previouslyInDeleteViewArea && currentlyInDeleteViewArea){
                                 // Entering into the Delete view area
-                                eventsListener?.onTouchIntersectDeleteView(PositionRelToDeleteView.ENTERING_DELETE_VIEW)
+                                eventsListener?.onTouchIntersectDeleteView(tag, view, PositionRelToDeleteView.ENTERING_DELETE_VIEW,)
                             }
                             mPrevX = event.x
                             mPrevY = event.y
@@ -118,7 +119,7 @@ class DragToDeleteTouchListener: BasePhotoEditorTouchListener {
             MotionEvent.ACTION_UP -> {
                 mActivePointerId = INVALID_POINTER_ID
                 if (isViewInBounds(deleteView, x, y)) {
-                    eventsListener?.onTouchEndOverDeleteView()
+                    eventsListener?.onTouchEndOverDeleteView(tag, view)
                 }
                 deleteView.visibility = View.GONE
             }
@@ -147,8 +148,8 @@ class DragToDeleteTouchListener: BasePhotoEditorTouchListener {
     }
 
     interface EventsListener {
-        fun onTouchIntersectDeleteView(positionRelToDeleteView: PositionRelToDeleteView)
-        fun onTouchEndOverDeleteView()
+        fun onTouchIntersectDeleteView(tag: String, view: View, positionRelToDeleteView: PositionRelToDeleteView)
+        fun onTouchEndOverDeleteView(tag: String, view: View)
     }
 
     enum class PositionRelToDeleteView{

@@ -9,9 +9,10 @@ import kotlin.math.max
 import kotlin.math.min
 
 class MultiTouchListener(
-    deleteView: View?,
+    tag: String,
+    photoEditor: PhotoEditor,
     photoEditorView: PhotoEditorView,
-    photoEditImageView: ImageView,
+    sourceImageView: ImageView,
     private val mIsPinchScalable: Boolean,
     onPhotoEditorListener: OnPhotoEditorListener?,
     viewState: PhotoEditorViewState,
@@ -25,13 +26,12 @@ class MultiTouchListener(
     private var mPrevRawX = 0f
     private var mPrevRawY = 0f
 
-    private var onMultiTouchListener: OnMultiTouchListener? = null
-
     //private val mScaleGestureDetector: ScaleGestureDetector
     private val location = IntArray(2)
     private var outRect: Rect? = null
 
-    private val deleteView: View?
+    private val tag: String
+    private val photoEditor: PhotoEditor
     private val photoEditImageView: ImageView
     private val photoEditorView: PhotoEditorView
     private val mOnPhotoEditorListener: OnPhotoEditorListener?
@@ -46,8 +46,9 @@ class MultiTouchListener(
         if (this.defaultTouchBehavior) {
             this.touchListeners.add(
                 DefaultScaleTouchListener(
+                    photoEditor,
                     photoEditorView,
-                    photoEditImageView,
+                    sourceImageView,
                     onPhotoEditorListener,
                     viewState,
                     mIsPinchScalable
@@ -55,8 +56,9 @@ class MultiTouchListener(
             )
             this.touchListeners.add(
                 DefaultTranslateTouchListener(
+                    photoEditor,
                     photoEditorView,
-                    photoEditImageView,
+                    sourceImageView,
                     onPhotoEditorListener,
                     viewState,
                     mIsPinchScalable
@@ -68,7 +70,7 @@ class MultiTouchListener(
                 addAll(touchListeners)
                 forEach {
                     it.viewState = viewState
-                    it.photoEditImageView = photoEditImageView
+                    it.sourceImageView = sourceImageView
                     it.photoEditorView = photoEditorView
                     it.mOnPhotoEditorListener = onPhotoEditorListener
                 }
@@ -78,25 +80,19 @@ class MultiTouchListener(
             // The View will stay fixed at one place. No motion possible
         }
 
-        this.deleteView = deleteView
+        this.tag = tag
+        this.photoEditor = photoEditor
         this.photoEditorView = photoEditorView
-        this.photoEditImageView = photoEditImageView
+        this.photoEditImageView = sourceImageView
         mOnPhotoEditorListener = onPhotoEditorListener
-        outRect = if (deleteView != null) {
-            Rect(
-                deleteView.left, deleteView.top,
-                deleteView.right, deleteView.bottom
-            )
-        } else {
-            Rect(0, 0, 0, 0)
-        }
+        outRect = Rect(0, 0, 0, 0)
         this.viewState = viewState
     }
 
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
         this.touchListeners.forEach {
-            it.onTouch(view, event)
+            it.onTouch(tag, view, event)
         }
         val action = event.action
         val x = event.rawX.toInt()
@@ -108,9 +104,6 @@ class MultiTouchListener(
                 mPrevRawX = event.rawX
                 mPrevRawY = event.rawY
                 mActivePointerId = event.getPointerId(0)
-                if (deleteView != null) {
-                    deleteView.visibility = View.VISIBLE
-                }
                 //view.bringToFront()
                 firePhotoEditorSDKListener(view, true)
             }
@@ -120,13 +113,8 @@ class MultiTouchListener(
             MotionEvent.ACTION_CANCEL -> mActivePointerId = INVALID_POINTER_ID
             MotionEvent.ACTION_UP -> {
                 mActivePointerId = INVALID_POINTER_ID
-                if (deleteView != null && isViewInBounds(deleteView, x, y)) {
-                    onMultiTouchListener?.onRemoveViewListener(view)
-                } else if (!isViewInBounds(photoEditImageView, x, y)) {
+                if (!isViewInBounds(photoEditImageView, x, y)) {
                     view.animate().translationY(0f).translationY(0f)
-                }
-                if (deleteView != null) {
-                    deleteView.visibility = View.GONE
                 }
                 firePhotoEditorSDKListener(view, false)
             }
@@ -149,7 +137,7 @@ class MultiTouchListener(
         this.touchListeners.apply {
             touchHandler.let {
                 it.viewState = viewState
-                it.photoEditImageView = this@MultiTouchListener.photoEditImageView
+                it.sourceImageView = this@MultiTouchListener.photoEditImageView
                 it.photoEditorView = photoEditorView
                 it.mOnPhotoEditorListener = this@MultiTouchListener.mOnPhotoEditorListener
             }
@@ -174,21 +162,6 @@ class MultiTouchListener(
             outRect?.contains(x, y)
         } ?: false
     }
-
-    fun setOnMultiTouchListener(onMultiTouchListener: OnMultiTouchListener?) {
-        this.onMultiTouchListener = onMultiTouchListener
-    }
-
-    interface OnMultiTouchListener {
-        fun onEditTextClickListener(text: String?, colorCode: Int)
-        fun onRemoveViewListener(removedView: View?)
-    }
-
-    interface OnGestureControl {
-        fun onClick()
-        fun onLongClick()
-    }
-
     companion object {
         internal const val INVALID_POINTER_ID = -1
         internal fun adjustAngle(degrees: Float): Float {

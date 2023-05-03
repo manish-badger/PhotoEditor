@@ -1,13 +1,14 @@
 package com.allthingsandroid.android.photoeditor
 
-import android.view.View.OnTouchListener
 import android.widget.ImageView
 
 open abstract class BasePhotoEditorTouchListener(): OnTouchListener {
 
+    lateinit var photoEditor: PhotoEditor
+        internal set
     lateinit var photoEditorView: PhotoEditorView
         internal set
-    lateinit var photoEditImageView: ImageView
+    lateinit var sourceImageView: ImageView
         internal set
     var mOnPhotoEditorListener: OnPhotoEditorListener? = null
         internal set
@@ -19,13 +20,15 @@ open abstract class BasePhotoEditorTouchListener(): OnTouchListener {
     var isScaleEnabled = true
 
     constructor(
+        photoEditor: PhotoEditor,
         photoEditorView: PhotoEditorView,
-        photoEditImageView: ImageView,
+        sourceImageView: ImageView,
         onPhotoEditorListener: OnPhotoEditorListener?,
         viewState: PhotoEditorViewState
     ) : this() {
+        this.photoEditor = photoEditor
         this.photoEditorView = photoEditorView
-        this.photoEditImageView = photoEditImageView
+        this.sourceImageView = sourceImageView
         this.mOnPhotoEditorListener = onPhotoEditorListener
         this.viewState = viewState
     }

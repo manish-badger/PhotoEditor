@@ -14,12 +14,13 @@ open abstract class BaseScaleTouchListener: BasePhotoEditorTouchListener {
     }
 
     constructor(
+        photoEditor: PhotoEditor,
         photoEditorView: PhotoEditorView,
-        photoEditImageView: ImageView,
+        sourceImageView: ImageView,
         onPhotoEditorListener: OnPhotoEditorListener?,
         viewState: PhotoEditorViewState,
         mIsPinchScalable: Boolean
-    ) : super(photoEditorView, photoEditImageView, onPhotoEditorListener, viewState) {
+    ) : super(photoEditor, photoEditorView, sourceImageView, onPhotoEditorListener, viewState) {
         this.mIsPinchScalable = mIsPinchScalable
     }
 }

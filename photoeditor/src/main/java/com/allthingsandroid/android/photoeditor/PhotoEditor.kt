@@ -161,9 +161,6 @@ interface PhotoEditor {
         var imageView: ImageView
 
         @JvmField
-        var deleteView: View? = null
-
-        @JvmField
         var drawingView: DrawingView? = null
 
         @JvmField
@@ -186,11 +183,6 @@ interface PhotoEditor {
         init {
             imageView = photoEditorView.source
             drawingView = photoEditorView.drawingView
-        }
-
-        fun setDeleteView(deleteView: View?): Builder {
-            this.deleteView = deleteView
-            return this
         }
 
         /**
