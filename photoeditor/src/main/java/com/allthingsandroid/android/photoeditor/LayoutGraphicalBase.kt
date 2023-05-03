@@ -15,11 +15,14 @@ abstract class LayoutGraphicalBase(
      */
     @LayoutRes
     protected val layoutId: Int,
-    viewType: ViewType
-): GraphicalBase(
+    viewType: ViewType,
+    viewPlacement: ViewPlacement = ViewPlacement.DEFAULT
+) : GraphicalBase(
     context,
     tag,
-    viewType) {
+    viewType,
+    viewPlacement
+) {
 
     init {
         if (layoutId == 0) {

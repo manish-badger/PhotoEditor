@@ -503,6 +503,14 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     override fun onStickerClick(bitmap: Bitmap?) {
         val sticker = mPhotoEditor.addImage(
             StickerGraphicalElementBuilder()
+                .viewPlacement(
+                    ViewPlacement.LayoutParamsBased(
+                        RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                                addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE)
+                        }
+                    )
+                )
                 .touchHandlers(mPhotoEditor.defaultTouchBehaviors().apply {
                     add(DefaultDragToDeleteTouchListener(bindingDragToDelete.actionDragToDelete, object:
                         DragToDeleteTouchListener.EventsListener{
@@ -522,10 +530,10 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
                     }))
                 })
         )
-        sticker.rootView.apply {
+        /*sticker.rootView.apply {
             x = (binding.photoEditorView.right - 32.dp - this.measuredWidth).toFloat()
             y = (binding.photoEditorView.bottom - 32.dp - this.measuredHeight).toFloat()
-        }
+        }*/
         sticker.contentView.setImageBitmap(bitmap)
         binding.txtCurrentTool.setText(R.string.label_sticker)
     }

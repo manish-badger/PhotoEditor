@@ -11,11 +11,13 @@ open class GraphicalBaseWithImageView(
     protected val mMultiTouchListener: MultiTouchListener,
     protected val mViewState: PhotoEditorViewState,
     layoutId: Int,
+    viewPlacement: ViewPlacement = ViewPlacement.DEFAULT
 ) : LayoutGraphicalBase(
     context = mPhotoEditorView.context,
     tag = tag,
     viewType = ViewType.IMAGE,
-    layoutId = layoutId
+    layoutId = layoutId,
+    viewPlacement = viewPlacement
 ) {
 
     protected open lateinit var contentView: ImageView

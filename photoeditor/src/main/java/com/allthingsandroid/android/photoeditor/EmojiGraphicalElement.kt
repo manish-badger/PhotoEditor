@@ -10,13 +10,15 @@ class EmojiGraphicalElement(
     mMultiTouchListener: MultiTouchListener,
     mViewState: PhotoEditorViewState,
     layoutId: Int,
+    viewPlacement: ViewPlacement = ViewPlacement.DEFAULT
 ) : GraphicalBaseWithTextView(
     tag,
     mPhotoEditorView,
     mMultiTouchListener,
     mViewState,
     layoutId,
-    ViewType.EMOJI
+    ViewType.EMOJI,
+    viewPlacement
 ) {
     public override lateinit var contentView: TextView
 

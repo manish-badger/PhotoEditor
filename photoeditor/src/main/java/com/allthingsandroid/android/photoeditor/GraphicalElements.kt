@@ -4,7 +4,7 @@ import android.widget.ImageView
 import androidx.annotation.LayoutRes
 import java.util.*
 
-abstract class GraphicalElementBuilder<T: GraphicalElementBuilder<T>>{
+abstract class GraphicalElementBuilder<T : GraphicalElementBuilder<T>> {
     protected var touchHandlers: MutableList<BasePhotoEditorTouchListener> = arrayListOf()
     protected var defaultTouchBehavior: Boolean = true
 
@@ -13,31 +13,38 @@ abstract class GraphicalElementBuilder<T: GraphicalElementBuilder<T>>{
     @LayoutRes
     protected var layoutId: Int = 0
 
-    fun touchHandlers(touchHandlers: List<BasePhotoEditorTouchListener>): T{
-        if(touchHandlers.isNotEmpty()){
+    protected var viewPlacement: ViewPlacement = ViewPlacement.DEFAULT
+
+    fun touchHandlers(touchHandlers: List<BasePhotoEditorTouchListener>): T {
+        if (touchHandlers.isNotEmpty()) {
             defaultTouchBehavior = false
             this.touchHandlers.addAll(touchHandlers)
         }
         return this as T
     }
 
-    fun layoutId(@LayoutRes layoutId: Int): T{
+    fun layoutId(@LayoutRes layoutId: Int): T {
         this.layoutId = layoutId
         return this as T
     }
 
-    fun tag(tag: String): T{
-        if(tag.isBlank()){
+    fun tag(tag: String): T {
+        if (tag.isBlank()) {
             throw IllegalStateException("Tag cannot be empty/blank.")
         }
         this.tag = tag
         return this as T
     }
+
+    fun viewPlacement(viewPlacement: ViewPlacement): T {
+        this.viewPlacement = viewPlacement
+        return this as T
+    }
 }
 
-class StickerGraphicalElementBuilder: GraphicalElementBuilder<StickerGraphicalElementBuilder>() {
+class StickerGraphicalElementBuilder : GraphicalElementBuilder<StickerGraphicalElementBuilder>() {
 
-    init{
+    init {
         layoutId = R.layout.plain_iv_based_sticker
     }
 
@@ -48,8 +55,11 @@ class StickerGraphicalElementBuilder: GraphicalElementBuilder<StickerGraphicalEl
         mOnPhotoEditorListener: OnPhotoEditorListener?,
         sourceImageView: ImageView
     ): StickerGraphicalElement {
-        val tag = if(this.tag == null) {
-            UUID.randomUUID().toString()} else {this.tag!!}
+        val tag = if (this.tag == null) {
+            UUID.randomUUID().toString()
+        } else {
+            this.tag!!
+        }
         val multiTouchListener = MultiTouchListener(
             tag,
             photoEditor,
@@ -66,7 +76,9 @@ class StickerGraphicalElementBuilder: GraphicalElementBuilder<StickerGraphicalEl
             mPhotoEditorView,
             multiTouchListener,
             mViewState,
-            layoutId)
+            layoutId,
+            viewPlacement
+        )
         multiTouchListener.addTouchHandler(ClickGesturesTouchListener().apply {
             graphicalBase = instance
         })
@@ -74,9 +86,9 @@ class StickerGraphicalElementBuilder: GraphicalElementBuilder<StickerGraphicalEl
     }
 }
 
-class TextGraphicalElementBuilder: GraphicalElementBuilder<TextGraphicalElementBuilder>() {
+class TextGraphicalElementBuilder : GraphicalElementBuilder<TextGraphicalElementBuilder>() {
 
-    init{
+    init {
         layoutId = R.layout.plain_tv_based_text_graphical_element
     }
 
@@ -87,8 +99,11 @@ class TextGraphicalElementBuilder: GraphicalElementBuilder<TextGraphicalElementB
         mOnPhotoEditorListener: OnPhotoEditorListener?,
         sourceImageView: ImageView,
     ): TextGraphicalElement {
-        val tag = if(this.tag == null) {
-            UUID.randomUUID().toString()} else {this.tag!!}
+        val tag = if (this.tag == null) {
+            UUID.randomUUID().toString()
+        } else {
+            this.tag!!
+        }
         val multiTouchListener = MultiTouchListener(
             tag,
             photoEditor,
@@ -105,7 +120,9 @@ class TextGraphicalElementBuilder: GraphicalElementBuilder<TextGraphicalElementB
             mPhotoEditorView,
             multiTouchListener,
             mViewState,
-            layoutId)
+            layoutId,
+            viewPlacement
+        )
         multiTouchListener.addTouchHandler(ClickGesturesTouchListener().apply {
             graphicalBase = instance
         })
@@ -113,9 +130,9 @@ class TextGraphicalElementBuilder: GraphicalElementBuilder<TextGraphicalElementB
     }
 }
 
-class EmojiGraphicalElementBuilder: GraphicalElementBuilder<EmojiGraphicalElementBuilder>() {
+class EmojiGraphicalElementBuilder : GraphicalElementBuilder<EmojiGraphicalElementBuilder>() {
 
-    init{
+    init {
         layoutId = R.layout.plain_tv_based_text_graphical_element
     }
 
@@ -126,8 +143,11 @@ class EmojiGraphicalElementBuilder: GraphicalElementBuilder<EmojiGraphicalElemen
         mOnPhotoEditorListener: OnPhotoEditorListener?,
         sourceImageView: ImageView,
     ): EmojiGraphicalElement {
-        val tag = if(this.tag == null) {
-            UUID.randomUUID().toString()} else {this.tag!!}
+        val tag = if (this.tag == null) {
+            UUID.randomUUID().toString()
+        } else {
+            this.tag!!
+        }
         val multiTouchListener = MultiTouchListener(
             tag,
             photoEditor,
@@ -144,7 +164,9 @@ class EmojiGraphicalElementBuilder: GraphicalElementBuilder<EmojiGraphicalElemen
             mPhotoEditorView,
             multiTouchListener,
             mViewState,
-            layoutId)
+            layoutId,
+            viewPlacement
+        )
         multiTouchListener.addTouchHandler(ClickGesturesTouchListener().apply {
             graphicalBase = instance
         })

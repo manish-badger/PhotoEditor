@@ -12,12 +12,14 @@ open class GraphicalBaseWithTextView(
     protected val mMultiTouchListener: MultiTouchListener,
     protected val mViewState: PhotoEditorViewState,
     layoutId: Int,
-    viewType: ViewType
+    viewType: ViewType,
+    viewPlacement: ViewPlacement = ViewPlacement.DEFAULT
 ) : LayoutGraphicalBase(
     context = mPhotoEditorView.context,
     tag = tag,
     viewType = viewType,
-    layoutId = layoutId
+    layoutId = layoutId,
+    viewPlacement = viewPlacement
 ) {
 
     protected open lateinit var contentView: TextView

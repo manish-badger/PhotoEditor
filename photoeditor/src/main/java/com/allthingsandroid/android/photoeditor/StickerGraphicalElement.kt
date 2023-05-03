@@ -9,12 +9,14 @@ class StickerGraphicalElement(
     mMultiTouchListener: MultiTouchListener,
     mViewState: PhotoEditorViewState,
     layoutId: Int,
+    viewPlacement: ViewPlacement = ViewPlacement.DEFAULT
 ) : GraphicalBaseWithImageView(
     tag,
     mPhotoEditorView,
     mMultiTouchListener,
     mViewState,
-    layoutId
+    layoutId,
+    viewPlacement
 ) {
     public override lateinit var contentView: ImageView
 }

@@ -9,13 +9,15 @@ class TextGraphicalElement(
     mMultiTouchListener: MultiTouchListener,
     mViewState: PhotoEditorViewState,
     layoutId: Int,
+    viewPlacement: ViewPlacement = ViewPlacement.DEFAULT
 ) : GraphicalBaseWithTextView(
     tag,
     mPhotoEditorView,
     mMultiTouchListener,
     mViewState,
     layoutId,
-    ViewType.TEXT
+    ViewType.TEXT,
+    viewPlacement
 ) {
     public override lateinit var contentView: TextView
 }

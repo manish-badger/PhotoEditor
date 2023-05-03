@@ -2,6 +2,7 @@ package com.allthingsandroid.android.photoeditor
 
 import android.content.Context
 import android.view.View
+import android.view.ViewGroup.LayoutParams
 
 
 // The name "GraphicalBase": Originally termed as "Graphic" by the lib developers, Graphic
@@ -12,9 +13,14 @@ import android.view.View
 abstract class GraphicalBase(
     protected val context: Context,
     val tag: String,
-    val viewType: ViewType
+    val viewType: ViewType,
+    internal val viewPlacement: ViewPlacement = ViewPlacement.DEFAULT
 ) {
-
     lateinit var rootView: View
     protected set
+}
+
+sealed class ViewPlacement{
+    object DEFAULT: ViewPlacement()
+    class LayoutParamsBased(val layoutParams: LayoutParams): ViewPlacement()
 }
